@@ -11,6 +11,7 @@
             --card: #ffffff;
             --text: #333333;
             --border: #cccccc;
+            --accent: #28a745;
         }
 
         body {
@@ -28,7 +29,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 900px;
+            max-width: 920px;
             padding: 25px;
         }
 
@@ -44,7 +45,7 @@
 
         .section-title {
             background: #f0f4f8;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-left: 4px solid var(--primary);
             font-weight: bold;
             margin: 20px 0 15px 0;
@@ -92,7 +93,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
             gap: 12px;
         }
 
@@ -108,14 +109,14 @@
         }
 
         input, select {
-            padding: 7px 10px;
+            padding: 8px 10px;
             border: 1px solid var(--border);
             border-radius: 4px;
             font-size: 0.9rem;
         }
 
         .btn-add {
-            background-color: #28a745;
+            background-color: var(--accent);
             color: white;
             border: none;
             padding: 8px 14px;
@@ -166,17 +167,28 @@
             font-weight: bold;
         }
 
+        .recommendation-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .note-box {
             font-size: 0.85rem;
-            color: #666;
+            color: #555;
             background: #fff;
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
-            margin-top: 10px;
+            margin-top: 12px;
             border: 1px solid #d0d0d0;
         }
 
-        .ratio-input-wrapper, .disk-config-wrapper {
+        .ratio-input-wrapper {
             display: flex;
             align-items: center;
             gap: 5px;
@@ -186,6 +198,22 @@
             font-weight: bold;
             color: #555;
         }
+
+        .spec-card {
+            background: white;
+            border: 1px solid #b8daff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .custom-inputs-box {
+            background: #fff3cd;
+            border: 1px solid #ffeba8;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -194,14 +222,12 @@
     <h2>Sangfor HCI Sizing Tool</h2>
     
     <form id="sizerForm">
-        <!-- WORKLOAD REQUIREMENT SECTION -->
         <div class="section-title">
             <span>1. Target Workload Requirements (VM Groups)</span>
             <button type="button" class="btn-add" onclick="addVmGroup()">+ Add VM Group</button>
         </div>
 
         <div id="vmGroupsContainer">
-            <!-- Initial VM Group 1 -->
             <div class="vm-group-card" id="vmGroup_1">
                 <div class="vm-group-header">
                     <span class="vm-group-title">VM Group 1</span>
@@ -239,7 +265,6 @@
             </div>
         </div>
 
-        <!-- GLOBAL STORAGE CONFIGURATION -->
         <div class="section-title">2. Global Storage Policy & Disk Architecture</div>
         <div class="grid">
             <div class="form-group">
@@ -262,40 +287,45 @@
             </div>
         </div>
 
-        <button type="button" class="btn-calc" onclick="calculateSizing()">1. Calculate Workload Requirements</button>
+        <button type="button" class="btn-calc" onclick="calculateSizing()">Calculate Requirements & Recommend Hardware</button>
 
-        <!-- HARDWARE SPECIFICATION SECTION -->
         <div id="hardwareSection" style="display: none;">
-            <div class="section-title">3. Physical Server Specification Option</div>
-            <div class="grid">
-                <div class="form-group">
-                    <label for="sockets">CPUs (Sockets) per Server</label>
-                    <input type="number" id="sockets" value="1" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="coresPerCPU">Cores per CPU</label>
-                    <input type="number" id="coresPerCPU" value="16" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="nodeRAM">RAM per Server (GB)</label>
-                    <input type="number" id="nodeRAM" value="128" min="16" required>
-                </div>
-                <div class="form-group">
-                    <label>Raw Data Disk Config per Server (Only Data Disk - not Cache)</label>
-                    <div class="disk-config-wrapper">
-                        <input type="number" id="diskQty" value="2" min="1" required style="width: 60px;" title="Disk Quantity">
-                        <span class="ratio-prefix">x</span>
-                        <input type="number" id="diskSizeTB" value="4" min="0.1" step="0.1" required style="width: 80px;" title="Disk Size in TB">
-                        <span class="ratio-prefix">TB</span>
-                    </div>
+            <div class="section-title">
+                <span>3. Recommended Hardware Specification</span>
+                <span id="bestTag" class="recommendation-badge">Optimal Pick</span>
+            </div>
+
+            <div class="grid" style="margin-bottom: 15px;">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="templateSelect">Select Server Hardware Template or Custom Input:</label>
+                    <select id="templateSelect" onchange="toggleCustomInputs()">
+                        <option value="1cpu_16core">1 CPU x 16 Cores (16 DIMM Slots, Max 12 Drive Bays)</option>
+                        <option value="2cpu_12core">2 CPU x 12 Cores (24 Cores total, 32 DIMM Slots, Max 12 Drive Bays)</option>
+                        <option value="2cpu_16core">2 CPU x 16 Cores (32 Cores total, 32 DIMM Slots, Max 12 Drive Bays)</option>
+                        <option value="2cpu_32core">2 CPU x 32 Cores (64 Cores total, 32 DIMM Slots, Max 12 Drive Bays)</option>
+                        <option value="custom">-- Custom Server Specification (Specify Sockets & Cores) --</option>
+                    </select>
                 </div>
             </div>
 
-            <button type="button" class="btn-calc" style="background-color: #28a745;" onclick="calculateNodeSizing()">2. Calculate Node Hardware Sizing</button>
+            <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="customSockets">CPU Sockets per Server</label>
+                        <select id="customSockets" onchange="recalculateHardware()">
+                            <option value="1">1 Socket (16 DIMM Slots)</option>
+                            <option value="2" selected>2 Sockets (32 DIMM Slots)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="customCores">Cores per CPU Socket</label>
+                        <input type="number" id="customCores" value="24" min="1" step="1" oninput="recalculateHardware()">
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 
-    <!-- RESULTS SECTION -->
     <div class="results" id="resultsBlock" style="display: none;">
         <h3>A. Workload Cluster Requirements</h3>
         <div class="result-item">
@@ -323,7 +353,7 @@
             <span class="value" id="outUsableStorage">0 TB</span>
         </div>
         <div class="result-item">
-            <span>Raw Data Disk Storage Required:</span>
+            <span>Raw Data Storage Required:</span>
             <span class="value" id="outRawStorage">0 TB</span>
         </div>
         <div class="result-item" id="hybridResultRow" style="display: none; background: #ffffff; padding: 6px 10px; border-radius: 4px;">
@@ -333,28 +363,37 @@
 
         <div id="nodeResultsBlock" style="display: none; margin-top: 15px; border-top: 1px dashed var(--primary); padding-top: 10px;">
             <h3>B. Server Node Sizing Result</h3>
-            <div class="result-item">
-                <span>Node Sizing Limit Driven By:</span>
-                <span class="value" id="outLimitingFactor">-</span>
-            </div>
-            <div class="result-item" style="font-size: 1.1rem; color: #0056b3;">
-                <span>Required Server Nodes:</span>
-                <span class="value" id="outNodes">0 Nodes</span>
-            </div>
-            <div class="result-item" id="perNodeStorageRow" style="display: none; background: #ffffff; padding: 8px 12px; border-radius: 4px; flex-direction: column; gap: 6px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span>Configured Data Capacity per Node:</span>
+            
+            <div class="spec-card">
+                <div class="result-item" style="font-size: 1.1rem; color: #0056b3; margin-bottom: 10px;">
+                    <span>Required Server Nodes:</span>
+                    <span class="value" id="outNodes">0 Nodes</span>
+                </div>
+                <div class="result-item">
+                    <span>Node Sizing Bottleneck Driven By:</span>
+                    <span class="value" id="outLimitingFactor">-</span>
+                </div>
+                <div class="result-item">
+                    <span>Selected Server CPU Specs:</span>
+                    <span class="value" id="outPerNodeCPU">-</span>
+                </div>
+                <div class="result-item">
+                    <span>Recommended Server RAM per Node:</span>
+                    <span class="value" id="outPerNodeRAM">-</span>
+                </div>
+                <div class="result-item">
+                    <span>Recommended Storage Config per Node:</span>
                     <span class="value" id="outPerNodeDataStorage">-</span>
                 </div>
-                <div style="display:flex; justify-content:space-between; color:#0056b3;" id="perNodeCacheRow">
-                    <span>Min Dedicated SSD Cache Required per Node:</span>
+                <div class="result-item" id="perNodeCacheRow" style="display:none; color:#0056b3;">
+                    <span>Dedicated SSD Cache Config per Node:</span>
                     <span class="value" id="outPerNodeCacheStorage">-</span>
                 </div>
             </div>
         </div>
 
         <div class="note-box" id="nodeNote">
-            Note: Calculations include a 20% system overhead buffer for aSAN operations, system redundancy, and hypervisor tasks.
+            Calculations include a 20% system overhead buffer for aSAN operations, system redundancy, and hypervisor tasks.
         </div>
     </div>
 </div>
@@ -366,10 +405,35 @@
     let globalCalculatedRawDataStorageTB = 0;
     let globalCalculatedUsableStorageTB = 0;
 
+    const TEMPLATES = {
+        '1cpu_16core': { name: '1 CPU x 16 Cores', cpus: 1, coresPerCpu: 16, totalCores: 16, dimmSlots: 16 },
+        '2cpu_12core': { name: '2 CPU x 12 Cores', cpus: 2, coresPerCpu: 12, totalCores: 24, dimmSlots: 32 },
+        '2cpu_16core': { name: '2 CPU x 16 Cores', cpus: 2, coresPerCpu: 16, totalCores: 32, dimmSlots: 32 },
+        '2cpu_32core': { name: '2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32 }
+    };
+
+    const ENTERPRISE_SSDS = [1.92, 3.84, 7.68, 15.36];
+    const ENTERPRISE_HDDS = [4, 8, 12, 16];
+
     function toggleHybridOptions() {
         const storageType = document.getElementById('storageType').value;
         const hybridGroup = document.getElementById('hybridRatioGroup');
         hybridGroup.style.display = (storageType === 'Hybrid') ? 'flex' : 'none';
+    }
+
+    function toggleCustomInputs() {
+        const select = document.getElementById('templateSelect');
+        const customBox = document.getElementById('customInputsContainer');
+        const bestTag = document.getElementById('bestTag');
+        
+        if (select.value === 'custom') {
+            customBox.style.display = 'block';
+            bestTag.style.display = 'none';
+        } else {
+            customBox.style.display = 'none';
+            bestTag.style.display = 'inline-block';
+        }
+        recalculateHardware();
     }
 
     function addVmGroup() {
@@ -421,9 +485,7 @@
 
     function removeVmGroup(id) {
         const groupElement = document.getElementById(`vmGroup_${id}`);
-        if (groupElement) {
-            groupElement.remove();
-        }
+        if (groupElement) groupElement.remove();
         updateRemoveButtons();
     }
 
@@ -435,14 +497,23 @@
         });
     }
 
+    function getScaledRAM(requiredRAMPerNode, maxDimmSlots) {
+        const presets = [128, 256, 512, 1024];
+        for (let ram of presets) {
+            if (ram >= requiredRAMPerNode) {
+                const num64GBDimms = ram / 64;
+                if (num64GBDimms <= maxDimmSlots) {
+                    return { ramGB: ram, dimmCount: num64GBDimms };
+                }
+            }
+        }
+        return { ramGB: 1024, dimmCount: Math.min(16, maxDimmSlots) };
+    }
+
     function calculateSizing() {
         const groupCards = document.querySelectorAll('.vm-group-card');
         
-        let totalVMs = 0;
-        let totalVCPUs = 0;
-        let physicalCoresNeeded = 0;
-        let usableRAM = 0;
-        let usableStorageGB = 0;
+        let totalVMs = 0, totalVCPUs = 0, physicalCoresNeeded = 0, usableRAM = 0, usableStorageGB = 0;
 
         groupCards.forEach((card) => {
             const count = parseFloat(card.querySelector('.vmCount').value) || 0;
@@ -461,8 +532,6 @@
 
         const copies = parseFloat(document.getElementById('copies').value);
         const totalRAMNeeded = Math.ceil(usableRAM * 1.20);
-        
-        // Raw Data Storage = Usable x Copies x 1.20 (overhead for snapshots & system slack)
         const rawDataStorageGB = usableStorageGB * copies * 1.20;
 
         const usableStorageTB = (usableStorageGB / 1024).toFixed(2);
@@ -473,7 +542,6 @@
         globalCalculatedRawDataStorageTB = parseFloat(rawDataStorageTB);
         globalCalculatedUsableStorageTB = parseFloat(usableStorageTB);
 
-        // Display Base Workload Results
         document.getElementById('outTotalVMs').innerText = totalVMs;
         document.getElementById('outVCPU').innerText = totalVCPUs;
         document.getElementById('outCores').innerText = physicalCoresNeeded + " Cores";
@@ -482,88 +550,170 @@
         document.getElementById('outUsableStorage').innerText = usableStorageTB + " TB";
         document.getElementById('outRawStorage').innerText = rawDataStorageTB + " TB (" + copies + "x replication + 20% overhead)";
 
-        // Dedicated Cache Calculation (Hybrid Mode)
         const storageType = document.getElementById('storageType').value;
         const hybridRow = document.getElementById('hybridResultRow');
         
         if (storageType === 'Hybrid') {
             const ssdRatio = parseFloat(document.getElementById('ssdRatio').value) / 100;
             const ssdCacheTB = (usableStorageTB * ssdRatio).toFixed(2);
-            
             document.getElementById('outCacheStorage').innerText = `${ssdCacheTB} TB (${(ssdRatio * 100).toFixed(0)}% ratio of Usable Storage)`;
             hybridRow.style.display = 'flex';
         } else {
             hybridRow.style.display = 'none';
         }
 
-        // Show Next Steps
         document.getElementById('resultsBlock').style.display = 'block';
         document.getElementById('hardwareSection').style.display = 'block';
+
+        findOptimalTemplate();
     }
 
-    function calculateNodeSizing() {
-        const sockets = parseFloat(document.getElementById('sockets').value);
-        const coresPerCPU = parseFloat(document.getElementById('coresPerCPU').value);
-        const nodeRAM = parseFloat(document.getElementById('nodeRAM').value);
-        
-        // Custom drive sizing inputs: Qty x SizeTB
-        let diskQty = parseInt(document.getElementById('diskQty').value) || 1;
-        const diskSizeTB = parseFloat(document.getElementById('diskSizeTB').value) || 1;
+    function getSelectedHardwareConfig() {
+        const selectedKey = document.getElementById('templateSelect').value;
+        if (selectedKey === 'custom') {
+            const sockets = parseInt(document.getElementById('customSockets').value) || 1;
+            const coresPerCpu = parseInt(document.getElementById('customCores').value) || 16;
+            return {
+                name: `Custom ${sockets} Socket x ${coresPerCpu} Cores`,
+                cpus: sockets,
+                coresPerCpu: coresPerCpu,
+                totalCores: sockets * coresPerCpu,
+                dimmSlots: sockets === 1 ? 16 : 32
+            };
+        } else {
+            return TEMPLATES[selectedKey];
+        }
+    }
 
+    function findOptimalTemplate() {
+        let bestKey = '2cpu_16core';
+        let lowestCostMetric = Infinity;
+
+        Object.keys(TEMPLATES).forEach(key => {
+            const nodeConfig = evaluateHardware(TEMPLATES[key]);
+            const costMetric = (nodeConfig.nodes * 100) + (TEMPLATES[key].totalCores * nodeConfig.nodes);
+            
+            if (costMetric < lowestCostMetric) {
+                lowestCostMetric = costMetric;
+                bestKey = key;
+            }
+        });
+
+        document.getElementById('templateSelect').value = bestKey;
+        toggleCustomInputs();
+    }
+
+    function evaluateHardware(tmpl) {
         const storageType = document.getElementById('storageType').value;
 
-        // Enforce rule: Full SSD requires minimum 2 SSDs per node
-        if (storageType === 'SSD' && diskQty < 2) {
-            diskQty = 2;
-            document.getElementById('diskQty').value = 2;
-            alert("Sangfor HCI Full SSD architecture requires a minimum of 2 SSDs per node. Automatically adjusted quantity to 2.");
+        // 1. Minimum nodes by CPU
+        const nodesByCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
+
+        // 2. Minimum nodes by Storage
+        let maxDataStoragePerNodeTB = 0;
+        if (storageType === 'SSD') {
+            maxDataStoragePerNodeTB = 12 * 15.36; // Max 12 x 15.36TB SSD
+        } else {
+            maxDataStoragePerNodeTB = 10 * 16; // Max 10 HDDs x 16TB (reserving 2 bays for cache)
         }
+        const nodesByStorage = Math.ceil(globalCalculatedRawDataStorageTB / maxDataStoragePerNodeTB);
 
-        const nodeStorageTB = diskQty * diskSizeTB;
+        let requiredNodes = Math.max(nodesByCPU, nodesByStorage, 2);
 
-        const coresPerNode = sockets * coresPerCPU;
-        const nodesByCPU = Math.ceil(globalCalculatedCores / coresPerNode);
-        const nodesByRAM = Math.ceil(globalCalculatedRAM / nodeRAM);
-        const nodesByStorage = Math.ceil(globalCalculatedRawDataStorageTB / nodeStorageTB);
+        // 3. RAM scaling per node
+        const requiredRAMPerNode = Math.ceil(globalCalculatedRAM / requiredNodes);
+        const ramSpec = getScaledRAM(requiredRAMPerNode, tmpl.dimmSlots);
 
-        let calculatedNodes = Math.max(nodesByCPU, nodesByRAM, nodesByStorage);
-        
-        if (calculatedNodes < 2) {
-            calculatedNodes = 2;
-        }
+        return {
+            nodes: requiredNodes,
+            nodesByCPU: nodesByCPU,
+            nodesByStorage: nodesByStorage,
+            ramSpec: ramSpec
+        };
+    }
 
+    function recalculateHardware() {
+        const tmpl = getSelectedHardwareConfig();
+        const storageType = document.getElementById('storageType').value;
+
+        const evalRes = evaluateHardware(tmpl);
+        const nodes = evalRes.nodes;
+
+        // Determine Sizing Limiting Factor
         let limitingFactors = [];
-        if (calculatedNodes === nodesByCPU) limitingFactors.push("CPU Cores");
-        if (calculatedNodes === nodesByRAM) limitingFactors.push("RAM");
-        if (calculatedNodes === nodesByStorage) limitingFactors.push("Data Storage");
+        if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores");
+        if (nodes === Math.ceil(globalCalculatedRAM / evalRes.ramSpec.ramGB)) limitingFactors.push("RAM Capacity");
+        if (nodes === evalRes.nodesByStorage) limitingFactors.push("Storage Drive Bays");
 
-        document.getElementById('outLimitingFactor').innerText = limitingFactors.join(" & ");
-        document.getElementById('outNodes').innerText = calculatedNodes + " Nodes";
+        document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" & ") : "Minimum 2-Node Cluster Rule";
+        document.getElementById('outNodes').innerText = nodes + " Nodes";
+        document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores (${tmpl.totalCores} Total Cores per server)`;
+        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB (${evalRes.ramSpec.dimmCount} x 64GB DIMMs - ${tmpl.dimmSlots} slots max)`;
 
-        // Storage Calculation per Node
-        const perNodeRow = document.getElementById('perNodeStorageRow');
-        const perNodeCacheRow = document.getElementById('perNodeCacheRow');
+        // Calculate Disk Allocation per Node
+        const rawDataPerNode = globalCalculatedRawDataStorageTB / nodes;
 
-        document.getElementById('outPerNodeDataStorage').innerText = `${diskQty} x ${diskSizeTB} TB (${nodeStorageTB} TB total ${storageType === 'Hybrid' ? 'HDD Capacity' : 'SSD Capacity'}) per node`;
+        if (storageType === 'SSD') {
+            document.getElementById('perNodeCacheRow').style.display = 'none';
 
-        if (storageType === 'Hybrid') {
+            let bestDriveCount = 2;
+            let bestDriveSize = 15.36;
+
+            for (let size of ENTERPRISE_SSDS) {
+                let count = Math.ceil(rawDataPerNode / size);
+                if (count < 2) count = 2; // Min 2 SSD rule
+                if (count <= 12) {
+                    bestDriveCount = count;
+                    bestDriveSize = size;
+                    break;
+                }
+            }
+
+            const totalNodeStorage = (bestDriveCount * bestDriveSize).toFixed(2);
+            document.getElementById('outPerNodeDataStorage').innerText = `${bestDriveCount} x ${bestDriveSize} TB Full Enterprise SSD (${totalNodeStorage} TB Raw/node)`;
+
+        } else {
+            // Hybrid Storage Calculation
             const ssdRatio = parseFloat(document.getElementById('ssdRatio').value) / 100;
             const totalCacheRequired = globalCalculatedUsableStorageTB * ssdRatio;
-            const cachePerNode = (totalCacheRequired / calculatedNodes).toFixed(2);
+            const cachePerNodeTB = totalCacheRequired / nodes;
 
-            document.getElementById('outPerNodeCacheStorage').innerText = `${cachePerNode} TB SSD Cache per node`;
-            perNodeCacheRow.style.display = 'flex';
-        } else {
-            perNodeCacheRow.style.display = 'none';
+            // Cache SSD picker (2 SSDs recommended for mirror/performance)
+            let cacheSSDCount = 2;
+            let cacheSSDSize = 0.96;
+            for (let size of ENTERPRISE_SSDS) {
+                if ((size * cacheSSDCount) >= cachePerNodeTB) {
+                    cacheSSDSize = size;
+                    break;
+                }
+            }
+
+            const hddBaysAvailable = 12 - cacheSSDCount;
+            let hddCount = hddBaysAvailable;
+            let hddSize = 16;
+
+            for (let size of ENTERPRISE_HDDS) {
+                let count = Math.ceil(rawDataPerNode / size);
+                if (count <= hddBaysAvailable) {
+                    hddCount = Math.max(count, 2);
+                    hddSize = size;
+                    break;
+                }
+            }
+
+            const totalHDDStorage = (hddCount * hddSize).toFixed(2);
+            const totalCacheStorage = (cacheSSDCount * cacheSSDSize).toFixed(2);
+
+            document.getElementById('outPerNodeDataStorage').innerText = `${hddCount} x ${hddSize} TB Enterprise HDD (${totalHDDStorage} TB Raw HDD Capacity/node)`;
+            document.getElementById('outPerNodeCacheStorage').innerText = `${cacheSSDCount} x ${cacheSSDSize} TB Enterprise SSD Cache (${totalCacheStorage} TB SSD Cache/node)`;
+            document.getElementById('perNodeCacheRow').style.display = 'flex';
         }
 
-        perNodeRow.style.display = 'flex';
-
         const nodeNoteElement = document.getElementById('nodeNote');
-        if (calculatedNodes === 2) {
-            nodeNoteElement.innerHTML = "<strong>2-Node Cluster Deployment:</strong> Sangfor supports 2-node deployment, but an external <strong>Witness Node</strong> (or Witness PC) is required to prevent split-brain issues and maintain high availability.";
+        if (nodes === 2) {
+            nodeNoteElement.innerHTML = "<strong>2-Node Cluster Deployment Notice:</strong> Sangfor supports 2-node deployments, but an external <strong>Witness Node</strong> (or Witness PC) is required to prevent split-brain issues and ensure continuous high availability.";
         } else {
-            nodeNoteElement.innerHTML = "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer for aSAN operations, system redundancy, and hypervisor tasks.";
+            nodeNoteElement.innerHTML = "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer for aSAN operations, system redundancy, and hypervisor management tasks.";
         }
 
         document.getElementById('nodeResultsBlock').style.display = 'block';
