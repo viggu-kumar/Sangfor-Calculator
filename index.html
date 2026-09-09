@@ -402,8 +402,8 @@
                             <input type="number" class="vmStorageGB" value="200" min="1" required oninput="calculateSizing()">
                         </div>
                         <div class="checkbox-group">
-                            <input type="checkbox" class="isDB" id="db_1" onchange="calculateSizing()">
-                            <label for="db_1">DB Workload (No Tiering)</label>
+                            <input type="checkbox" class="isNoTiering" id="noTier_1" onchange="calculateSizing()">
+                            <label for="noTier_1">No Tiering</label>
                         </div>
                     </div>
                 </div>
@@ -412,13 +412,6 @@
             <!-- MEMORY TIERING CONFIGURATION -->
             <div class="section-title">2. Memory Architecture & Tiering</div>
             <div class="grid">
-                <div class="form-group">
-                    <label for="enableMemoryTiering">NVMe Memory Tiering</label>
-                    <select id="enableMemoryTiering" onchange="toggleTieringOptions(); calculateSizing();">
-                        <option value="enabled" selected>Enabled</option>
-                        <option value="disabled">Disabled</option>
-                    </select>
-                </div>
                 <div class="form-group" id="nvmeSizeGroup">
                     <label for="nvmeSizeTB">Tiering NVMe Disk (TB)</label>
                     <input type="number" id="nvmeSizeTB" value="1.92" min="0.96" step="0.01" oninput="calculateSizing()">
@@ -619,7 +612,7 @@
 
 <script>
     // --- GLOBAL VARIABLES FOR PANEL LINKING ---
-    let globalTargetUsableStorageTB = 2.40; // Default derived from 10 VMs x 200GB + 20% buffer
+    let globalTargetUsableStorageTB = 2.40;
 
     // --- STORAGE CALCULATOR LOGIC ---
     let storageRowCounter = 1;
@@ -689,7 +682,6 @@
         document.getElementById('outTotalUsableStorage').innerText = totalUsableTB.toFixed(2) + " TB";
         document.getElementById('formulaText').innerText = `Usable Capacity = (Raw Size / ${copyPolicy}) × 83%`;
 
-        // Update Right Panel Status vs Left Panel Target
         updateStorageStatus(totalUsableTB);
     }
 
@@ -723,11 +715,6 @@
         '2cpu_32core': { name: '2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32 }
     };
 
-    function toggleTieringOptions() {
-        const enableTiering = document.getElementById('enableMemoryTiering').value === 'enabled';
-        document.getElementById('nvmeSizeGroup').style.display = enableTiering ? 'flex' : 'none';
-    }
-
     function toggleCustomInputs() {
         const select = document.getElementById('templateSelect');
         const customBox = document.getElementById('customInputsContainer');
@@ -758,7 +745,7 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Group Name</label>
-                    <input type="text" class="groupName" value="Database / Apps">
+                    <input type="text" class="groupName" value="Workload ${groupCounter}">
                 </div>
                 <div class="form-group">
                     <label>Number of VMs</label>
@@ -784,8 +771,8 @@
                     <input type="number" class="vmStorageGB" value="300" min="1" required oninput="calculateSizing()">
                 </div>
                 <div class="checkbox-group">
-                    <input type="checkbox" class="isDB" id="db_${groupCounter}" onchange="calculateSizing()">
-                    <label for="db_${groupCounter}">DB Workload (No Tiering)</label>
+                    <input type="checkbox" class="isNoTiering" id="noTier_${groupCounter}" onchange="calculateSizing()">
+                    <label for="noTier_${groupCounter}">No Tiering</label>
                 </div>
             </div>
         `;
@@ -825,7 +812,6 @@
 
     function calculateSizing() {
         const groupCards = document.querySelectorAll('.vm-group-card');
-        const isTieringEnabled = document.getElementById('enableMemoryTiering').value === 'enabled';
         
         let totalVMs = 0, totalVCPUs = 0, physicalCoresNeeded = 0;
         let totalDRAMGB = 0, totalNVMeRAMGB = 0;
@@ -837,7 +823,7 @@
             const ratio = parseFloat(card.querySelector('.vcpuRatio').value) || 1;
             const ram = parseFloat(card.querySelector('.ram').value) || 0;
             const vmStorage = parseFloat(card.querySelector('.vmStorageGB').value) || 0;
-            const isDB = card.querySelector('.isDB').checked;
+            const isNoTiering = card.querySelector('.isNoTiering').checked;
 
             totalVMs += count;
             const groupVCPUs = count * vcpu;
@@ -847,7 +833,7 @@
             const groupTotalRAM = count * ram;
             rawVMStorageGB += count * vmStorage;
 
-            if (isTieringEnabled && !isDB) {
+            if (!isNoTiering) {
                 totalDRAMGB += groupTotalRAM * 0.50;
                 totalNVMeRAMGB += groupTotalRAM * 0.50;
             } else {
@@ -859,7 +845,6 @@
         const recNVMeRAM = Math.ceil(totalNVMeRAMGB * 1.20);
         const totalRAMNeeded = recDRAM + recNVMeRAM;
 
-        // Apply 20% system overhead to VM storage requirements and convert to TB
         const totalVMStorageTBWithOverhead = (rawVMStorageGB * 1.20) / 1024;
         globalTargetUsableStorageTB = totalVMStorageTBWithOverhead;
 
@@ -875,7 +860,7 @@
         document.getElementById('outVMStorageReq').innerText = totalVMStorageTBWithOverhead.toFixed(2) + " TB";
 
         const splitRow = document.getElementById('memorySplitRow');
-        if (isTieringEnabled && recNVMeRAM > 0) {
+        if (recNVMeRAM > 0) {
             document.getElementById('outTotalDRAM').innerText = recDRAM + " GB";
             document.getElementById('outTotalNVMeRAM').innerText = recNVMeRAM + " GB";
             splitRow.style.display = 'flex';
@@ -887,8 +872,6 @@
         document.getElementById('hardwareSection').style.display = 'block';
 
         findOptimalTemplate();
-        
-        // Update Right Panel storage target calculation
         calculateStorageOnly();
     }
 
@@ -928,12 +911,12 @@
     }
 
     function evaluateHardware(tmpl) {
-        const enableTiering = document.getElementById('enableMemoryTiering').value === 'enabled' && globalCalculatedNVMeRAM > 0;
+        const hasTiering = globalCalculatedNVMeRAM > 0;
 
         const nodesByCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
 
         let nodesByNVMeTier = 1;
-        if (enableTiering) {
+        if (hasTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const nvmeSizeGB = nvmeSizeTB * 1024;
             const nvmeRamNeededPerNode = globalCalculatedNVMeRAM;
@@ -955,7 +938,7 @@
 
     function recalculateHardware() {
         const tmpl = getSelectedHardwareConfig();
-        const enableTiering = document.getElementById('enableMemoryTiering').value === 'enabled' && globalCalculatedNVMeRAM > 0;
+        const hasTiering = globalCalculatedNVMeRAM > 0;
 
         const evalRes = evaluateHardware(tmpl);
         const nodes = evalRes.nodes;
@@ -963,7 +946,7 @@
         let limitingFactors = [];
         if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores");
         if (nodes === Math.ceil(globalCalculatedDRAM / evalRes.ramSpec.ramGB)) limitingFactors.push("DRAM Capacity");
-        if (enableTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
+        if (hasTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
 
         document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" & ") : "Minimum 2-Node Cluster Rule";
         document.getElementById('outNodes').innerText = nodes + " Nodes";
@@ -971,7 +954,7 @@
         document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM (${evalRes.ramSpec.dimmCount} x 64GB DIMMs - ${tmpl.dimmSlots} slots max)`;
 
         const tieringRow = document.getElementById('tieringDiskNodeRow');
-        if (enableTiering) {
+        if (hasTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / nodes);
             document.getElementById('outPerNodeTieringDisk').innerText = `1 x ${nvmeSizeTB} TB NVMe SSD (Provides up to ${tieredRamPerNode} GB Tiered RAM per node)`;
@@ -990,7 +973,6 @@
         document.getElementById('nodeResultsBlock').style.display = 'block';
     }
 
-    // Run initial calculations on window load
     window.onload = function() {
         calculateSizing();
     };
