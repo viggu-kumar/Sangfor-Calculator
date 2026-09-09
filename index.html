@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sangfor HCI Sizer - Compute & Storage</title>
+    <title>Sangfor HCI Sizer - Compute, Storage & Licensing</title>
     <style>
         :root {
             --primary: #0056b3;
@@ -13,6 +13,7 @@
             --border: #cccccc;
             --accent: #28a745;
             --storage-theme: #008080;
+            --license-theme: #6f42c1;
         }
 
         body {
@@ -49,6 +50,16 @@
             border-top: 5px solid var(--storage-theme);
         }
 
+        .license-wrapper {
+            max-width: 1600px;
+            margin: 20px auto 0 auto;
+            background: var(--card);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-top: 5px solid var(--license-theme);
+        }
+
         h2, h3 {
             color: var(--primary);
             margin-top: 0;
@@ -62,6 +73,12 @@
 
         .left-panel h2 {
             border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .license-wrapper h2 {
+            color: var(--license-theme);
+            border-bottom: 2px solid var(--license-theme);
             padding-bottom: 10px;
         }
 
@@ -83,6 +100,15 @@
             font-weight: bold;
             margin: 20px 0 15px 0;
             color: var(--storage-theme);
+        }
+
+        .license-section-title {
+            background: #f3ebf9;
+            padding: 10px 14px;
+            border-left: 4px solid var(--license-theme);
+            font-weight: bold;
+            margin: 20px 0 15px 0;
+            color: var(--license-theme);
         }
 
         .vm-group-card {
@@ -380,11 +406,35 @@
             color: #0d47a1;
         }
 
+        /* LICENSING SUMMARY BOX */
+        .license-summary-card {
+            background: #f8f4fc;
+            border: 1px solid #dcd0f0;
+            border-left: 5px solid var(--license-theme);
+            padding: 18px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .license-summary-card h3 {
+            color: var(--license-theme);
+            margin-bottom: 12px;
+        }
+
+        .license-badge {
+            background-color: var(--license-theme);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
         @media (max-width: 1100px) {
             .main-wrapper {
                 flex-direction: column;
             }
-            .left-panel, .right-panel {
+            .left-panel, .right-panel, .license-wrapper {
                 width: 100%;
                 box-sizing: border-box;
             }
@@ -433,11 +483,11 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>RAM per VM (GB)</label>
+                            <label>RAM per VM in GB</label>
                             <input type="number" class="ram" value="16" min="1" required oninput="calculateSizing()">
                         </div>
                         <div class="form-group">
-                            <label style="color: var(--storage-theme);">Storage per VM (GB)</label>
+                            <label style="color: var(--storage-theme);">Storage per VM in GB</label>
                             <input type="number" class="vmStorageGB" value="200" min="1" required oninput="calculateSizing()">
                         </div>
                         <div class="checkbox-group">
@@ -449,10 +499,10 @@
             </div>
 
             <!-- MEMORY TIERING CONFIGURATION -->
-            <div class="section-title">2. Memory Architecture & Tiering</div>
+            <div class="section-title">2. Memory Architecture and Tiering</div>
             <div class="grid">
                 <div class="form-group" id="nvmeSizeGroup">
-                    <label for="nvmeSizeTB">Tiering NVMe Disk (TB)</label>
+                    <label for="nvmeSizeTB">Tiering NVMe Disk Size in TB</label>
                     <input type="number" id="nvmeSizeTB" value="1.92" min="0.96" step="0.01" oninput="calculateSizing()">
                 </div>
             </div>
@@ -471,9 +521,9 @@
                         <label for="templateSelect">Hardware Template:</label>
                         <select id="templateSelect" onchange="toggleCustomInputs()">
                             <option value="1cpu_16core">1 CPU x 16 Cores</option>
-                            <option value="2cpu_12core">2 CPU x 12 Cores (24 Cores total)</option>
-                            <option value="2cpu_16core">2 CPU x 16 Cores (32 Cores total)</option>
-                            <option value="2cpu_32core">2 CPU x 32 Cores (64 Cores total)</option>
+                            <option value="2cpu_12core">2 CPU x 12 Cores, 24 Cores total</option>
+                            <option value="2cpu_16core">2 CPU x 16 Cores, 32 Cores total</option>
+                            <option value="2cpu_32core">2 CPU x 32 Cores, 64 Cores total</option>
                             <option value="custom">-- Custom Server Specification --</option>
                         </select>
                     </div>
@@ -514,20 +564,20 @@
                 <span class="value" id="outCores">0 Cores</span>
             </div>
             <div class="result-item">
-                <span>Physical RAM (+20% Overhead):</span>
+                <span>Physical RAM plus 20% Overhead:</span>
                 <span class="value" id="outTotalRAM">0 GB</span>
             </div>
             <div class="result-item" style="color: var(--storage-theme); font-weight: bold;">
-                <span>VM Storage Required (+20% Overhead):</span>
+                <span>VM Storage Required plus 20% Overhead:</span>
                 <span class="value" id="outVMStorageReq">0.00 TB</span>
             </div>
             <div class="result-item" id="memorySplitRow" style="display: none; background: #ffffff; padding: 6px 10px; border-radius: 4px; flex-direction: column;">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>DRAM (Cluster Total):</span>
+                    <span>DRAM Cluster Total:</span>
                     <span class="value" id="outTotalDRAM">0 GB</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; color:#0056b3; margin-top:4px;">
-                    <span>NVMe Tiered RAM (Cluster Total):</span>
+                    <span>NVMe Tiered RAM Cluster Total:</span>
                     <span class="value" id="outTotalNVMeRAM">0 GB</span>
                 </div>
             </div>
@@ -572,18 +622,18 @@
         <div class="target-storage-banner">
             <div class="target-title">Target VM Usable Storage Required</div>
             <div class="target-value" id="rightTargetStorageVal">2.40 TB</div>
-            <div class="target-status" id="rightTargetStatus">Current Usable Config: 3.19 TB (Sufficient)</div>
+            <div class="target-status" id="rightTargetStatus">Current Usable Config: 3.19 TB Sufficient</div>
         </div>
         
         <!-- SECTION 1: ARCHITECTURE & NODE CONSTRAINTS -->
-        <div class="storage-section-title">1. Storage Architecture & Slot Configuration</div>
+        <div class="storage-section-title">1. Storage Architecture and Slot Configuration</div>
         <div class="policy-select-box">
             <div class="grid">
                 <div class="form-group">
                     <label for="stArchitecture" style="color: var(--storage-theme);">Storage Architecture:</label>
                     <select id="stArchitecture" onchange="onStorageArchChange()">
-                        <option value="flash" selected>Full Flash (All SSD)</option>
-                        <option value="hybrid">Hybrid (HDD + SSD Cache)</option>
+                        <option value="flash" selected>Full Flash All SSD</option>
+                        <option value="hybrid">Hybrid HDD plus SSD Cache</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -591,19 +641,19 @@
                     <input type="number" id="stNodeCount" value="2" min="2" step="1" oninput="calculateStorageOnly()">
                 </div>
                 <div class="form-group" style="grid-column: span 2;">
-                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Data Disk Slots / Node:</label>
+                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Data Disk Slots Per Node:</label>
                     <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
                 </div>
             </div>
         </div>
 
-        <div class="storage-section-title">2. Replica Policy & Drive Selection</div>
+        <div class="storage-section-title">2. Replica Policy and Drive Selection</div>
         <div class="policy-select-box">
             <div class="form-group" style="margin-bottom: 0;">
-                <label for="stCopyPolicy" style="color: var(--storage-theme);">Select Replica / Copy Policy:</label>
+                <label for="stCopyPolicy" style="color: var(--storage-theme);">Select Replica Copy Policy:</label>
                 <select id="stCopyPolicy" onchange="calculateStorageOnly()">
-                    <option value="2" selected>2 Copies Policy (Raw / 2 x 83%)</option>
-                    <option value="3">3 Copies Policy (Raw / 3 x 83%)</option>
+                    <option value="2" selected>2 Copies Policy</option>
+                    <option value="3">3 Copies Policy</option>
                 </select>
             </div>
         </div>
@@ -613,7 +663,7 @@
         <table class="storage-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;" id="thDiskTypeLabel">SSD Disk Size (TB)</th>
+                    <th style="width: 25%;" id="thDiskTypeLabel">SSD Disk Size in TB</th>
                     <th style="width: 20%;">Total Qty</th>
                     <th style="width: 25%;">Raw Size</th>
                     <th style="width: 25%;">Usable Capacity</th>
@@ -642,13 +692,13 @@
         </table>
 
         <!-- HYBRID SSD CACHE RECOMMENDATION DISPLAY -->
-        <div id="hybridCacheBox" class="cache-recommendation-box cache-recommend-box" style="display: none;">
-            <strong>⚡ SSD Cache Recommendation (Per Node):</strong>
+        <div id="hybridCacheBox" class="cache-recommend-box" style="display: none;">
+            <strong>SSD Cache Recommendation Per Node:</strong>
             <div id="cacheDetailText" style="margin-top: 4px;">Calculating recommended cache...</div>
         </div>
 
         <div class="storage-summary">
-            <h3>Storage & Physical Alignment Summary</h3>
+            <h3>Storage and Physical Alignment Summary</h3>
             <div class="result-item">
                 <span>Architecture Mode:</span>
                 <span class="value" id="outArchMode">Full Flash</span>
@@ -659,15 +709,15 @@
             </div>
             <div class="result-item">
                 <span>Total Cluster Disk Slots Available:</span>
-                <span class="value" id="outTotalSlotCapacity">24 Slots (12/node)</span>
+                <span class="value" id="outTotalSlotCapacity">24 Slots</span>
             </div>
             <div class="result-item">
                 <span>Total Storage Disks Selected:</span>
-                <span class="value" id="outTotalDisks">4 Disks (2/node)</span>
+                <span class="value" id="outTotalDisks">4 Disks</span>
             </div>
             <div class="result-item">
                 <span>Replica Policy:</span>
-                <span class="value" id="outPolicyText">2 Copies</span>
+                <span class="value" id="outPolicyText">2 Copies Policy</span>
             </div>
             <div class="result-item">
                 <span>Total Raw Capacity:</span>
@@ -680,22 +730,81 @@
 
             <!-- CROSS-SECTION ADVICE BLOCK -->
             <div id="storageAdviceBox" class="storage-advice-alert advice-ok">
-                ✓ Disk slot capacity is sufficient across configured nodes.
+                Disk slot capacity is sufficient across configured nodes.
             </div>
         </div>
 
         <div class="note-box" style="margin-top: 15px;">
             <strong>Applied Formula:</strong><br>
-            • <code>Raw Size = Disk Size × Qty</code><br>
-            • <code id="formulaText">Usable Capacity = (Raw Size / 2) × 83%</code>
+            • Raw Size = Disk Size × Qty<br>
+            • <span id="formulaText">Usable Capacity = Raw Size divided by 2 × 83%</span>
         </div>
     </div>
 
 </div>
 
+<!-- BOTTOM PANEL: SANGFOR SOFTWARE LICENSING & SUBSCRIPTION -->
+<div class="license-wrapper">
+    <h2>Sangfor Software License and Subscription Sizer</h2>
+
+    <div class="license-section-title">Deployment and License Configuration</div>
+
+    <div class="grid">
+        <div class="form-group">
+            <label for="licDeploymentType" style="color: var(--license-theme);">Deployment Option:</label>
+            <select id="licDeploymentType" onchange="calculateLicensing()">
+                <option value="hypervisor">Hypervisor only</option>
+                <option value="hci" selected>Full HCI</option>
+                <option value="private_cloud">Full Private Cloud Stack</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="licSubscriptionTerm" style="color: var(--license-theme);">Subscription and Support Term:</label>
+            <select id="licSubscriptionTerm" onchange="calculateLicensing()">
+                <option value="1Y">1 Year Subscription and Support</option>
+                <option value="3Y" selected>3 Years Subscription and Support</option>
+                <option value="5Y">5 Years Subscription and Support</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="license-summary-card">
+        <h3>Recommended License Bundle Breakdown</h3>
+        <div class="result-item">
+            <span>Selected Deployment Option:</span>
+            <span class="license-badge" id="outLicDeploymentName">Full HCI</span>
+        </div>
+        <div class="result-item" style="margin-top: 10px;">
+            <span>License Metric:</span>
+            <span class="value" style="color: var(--license-theme);">Based on Number of CPU Sockets</span>
+        </div>
+        <div class="result-item">
+            <span>Total CPU Sockets in Cluster:</span>
+            <span class="value" id="outTotalCPUSockets">4 Sockets</span>
+        </div>
+        <div class="result-item" style="font-size: 1.1rem; color: var(--license-theme); font-weight: bold; margin-top: 10px; border-top: 1px dashed #dcd0f0; padding-top: 10px;">
+            <span>Calculated License SKU:</span>
+            <span class="value" id="outLicQuantity">4 x Bundle-Advanced-3Y</span>
+        </div>
+        <div class="result-item">
+            <span>Subscription and Support Duration:</span>
+            <span class="value" id="outLicSupportTerm">3 Years</span>
+        </div>
+    </div>
+
+    <div class="note-box" style="margin-top: 15px;">
+        <strong>License Bundle Definitions:</strong><br>
+        • Hypervisor only maps to Standard Bundle<br>
+        • Full HCI maps to Advanced Bundle<br>
+        • Full Private Cloud Stack maps to Enterprise Bundle
+    </div>
+</div>
+
 <script>
     let globalTargetUsableStorageTB = 2.40;
     let globalComputeNodesCount = 2;
+    let globalSocketsPerNode = 2;
     let storageRowCounter = 1;
 
     function onStorageArchChange() {
@@ -704,8 +813,7 @@
         const rows = document.querySelectorAll('#storageRowsContainer tr');
 
         if (arch === 'hybrid') {
-            labelElem.innerText = "HDD Disk Size (TB)";
-            // Set default HDD size if user switches to hybrid for convenience
+            labelElem.innerText = "HDD Disk Size in TB";
             rows.forEach(r => {
                 const input = r.querySelector('.stDiskSize');
                 if (input.value == 1.92 || input.value == 0.96) {
@@ -713,7 +821,7 @@
                 }
             });
         } else {
-            labelElem.innerText = "SSD Disk Size (TB)";
+            labelElem.innerText = "SSD Disk Size in TB";
             rows.forEach(r => {
                 const input = r.querySelector('.stDiskSize');
                 if (input.value == 4.0 || input.value == 8.0) {
@@ -793,14 +901,14 @@
         const totalAvailableSlots = stNodes * maxSlotsPerNode;
         const disksPerNode = (totalQty / stNodes).toFixed(1);
 
-        document.getElementById('outArchMode').innerText = arch === 'hybrid' ? "Hybrid (HDD + SSD Cache)" : "Full Flash (All-SSD)";
+        document.getElementById('outArchMode').innerText = arch === 'hybrid' ? "Hybrid HDD plus SSD Cache" : "Full Flash All SSD";
         document.getElementById('outStNodes').innerText = stNodes + " Nodes";
-        document.getElementById('outTotalSlotCapacity').innerText = `${totalAvailableSlots} Slots (${maxSlotsPerNode}/node)`;
-        document.getElementById('outTotalDisks').innerText = `${totalQty} Disks (${disksPerNode}/node avg)`;
-        document.getElementById('outPolicyText').innerText = copyPolicy + " Copies";
+        document.getElementById('outTotalSlotCapacity').innerText = totalAvailableSlots + " Slots";
+        document.getElementById('outTotalDisks').innerText = totalQty + " Disks";
+        document.getElementById('outPolicyText').innerText = copyPolicy + " Copies Policy";
         document.getElementById('outTotalRawStorage').innerText = totalRawTB.toFixed(2) + " TB";
         document.getElementById('outTotalUsableStorage').innerText = totalUsableTB.toFixed(2) + " TB";
-        document.getElementById('formulaText').innerText = `Usable Capacity = (Raw Size / ${copyPolicy}) × 83%`;
+        document.getElementById('formulaText').innerText = `Usable Capacity = Raw Size divided by ${copyPolicy} × 83%`;
 
         // HYBRID SSD CACHE AUTOMATIC CALCULATOR
         const cacheBox = document.getElementById('hybridCacheBox');
@@ -810,7 +918,6 @@
             const cache10Percent = rawPerNodeTB * 0.10;
             const cache20Percent = rawPerNodeTB * 0.20;
 
-            // Pick recommended cache disk size per node (Standard SSD sizes: 1.92, 3.84, 7.68 TB)
             let recommendedSSDSize = 1.92;
             let qtySSD = 1;
 
@@ -828,9 +935,9 @@
             const currentRatio = rawPerNodeTB > 0 ? ((recommendedSSDSize * qtySSD) / rawPerNodeTB * 100).toFixed(1) : 0;
 
             document.getElementById('cacheDetailText').innerHTML = 
-                `• Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
-                `• Required Cache Range (10% - 20%): <strong>${cache10Percent.toFixed(2)} TB – ${cache20Percent.toFixed(2)} TB</strong><br>` +
-                `• <strong>Recommended SSD Cache:</strong> ${qtySSD} x <strong>${recommendedSSDSize} TB Enterprise SSD</strong> per node (~${currentRatio}% cache ratio).`;
+                `Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
+                `Required Cache Range: <strong>${cache10Percent.toFixed(2)} TB to ${cache20Percent.toFixed(2)} TB</strong><br>` +
+                `<strong>Recommended SSD Cache:</strong> ${qtySSD} x <strong>${recommendedSSDSize} TB Enterprise SSD</strong> per node, approximately ${currentRatio}% cache ratio.`;
         } else {
             cacheBox.style.display = 'none';
         }
@@ -839,18 +946,16 @@
         const adviceBox = document.getElementById('storageAdviceBox');
         let adviceMessages = [];
 
-        // Check 1: Are storage drive slots exceeded?
         if (totalQty > totalAvailableSlots) {
             const requiredNodesForStorage = Math.ceil(totalQty / maxSlotsPerNode);
             const extraNodesNeeded = requiredNodesForStorage - stNodes;
-            adviceMessages.push(`⚠️ <strong>Disk Slot Limit Exceeded:</strong> Total selected drives (${totalQty}) exceed current slot capacity (${totalAvailableSlots} slots based on ${maxSlotsPerNode} max slots/node). Add <strong>${extraNodesNeeded} more node(s)</strong> or increase drive size.`);
+            adviceMessages.push(`Disk Slot Limit Exceeded: Total selected drives ${totalQty} exceed current slot capacity ${totalAvailableSlots} slots. Add ${extraNodesNeeded} more nodes or increase drive size.`);
         }
 
-        // Check 2: Does storage node count match compute recommendation?
         if (stNodes < globalComputeNodesCount) {
-            adviceMessages.push(`⚠️ <strong>Node Mismatch:</strong> Compute sizing requires at least <strong>${globalComputeNodesCount} nodes</strong>, but storage node input is set to <strong>${stNodes} nodes</strong>.`);
+            adviceMessages.push(`Node Mismatch: Compute sizing requires at least ${globalComputeNodesCount} nodes, but storage node input is set to ${stNodes} nodes.`);
         } else if (stNodes > globalComputeNodesCount) {
-            adviceMessages.push(`💡 <strong>Storage expansion note:</strong> You have configured ${stNodes} nodes for storage, which is higher than the compute requirement (${globalComputeNodesCount} nodes).`);
+            adviceMessages.push(`Storage expansion note: You have configured ${stNodes} nodes for storage, which is higher than the compute requirement of ${globalComputeNodesCount} nodes.`);
         }
 
         if (adviceMessages.length > 0) {
@@ -858,7 +963,7 @@
             adviceBox.innerHTML = adviceMessages.join("<br><br>");
         } else {
             adviceBox.className = "storage-advice-alert advice-ok";
-            adviceBox.innerHTML = `✓ Storage physical slots are aligned across ${stNodes} nodes (${disksPerNode} drives/node). Fits perfectly with compute requirement!`;
+            adviceBox.innerHTML = `Storage physical slots are aligned across ${stNodes} nodes at ${disksPerNode} drives per node. Fits perfectly with compute requirement.`;
         }
 
         updateStorageStatus(totalUsableTB);
@@ -871,13 +976,45 @@
         targetValElem.innerText = globalTargetUsableStorageTB.toFixed(2) + " TB";
 
         if (currentUsableTB >= globalTargetUsableStorageTB) {
-            statusElem.innerText = `Current Usable Config: ${currentUsableTB.toFixed(2)} TB (Sufficient ✓)`;
+            statusElem.innerText = `Current Usable Config: ${currentUsableTB.toFixed(2)} TB Sufficient`;
             statusElem.className = "target-status status-pass";
         } else {
             const diff = globalTargetUsableStorageTB - currentUsableTB;
-            statusElem.innerText = `Current Usable Config: ${currentUsableTB.toFixed(2)} TB (Short by ${diff.toFixed(2)} TB ✗)`;
+            statusElem.innerText = `Current Usable Config: ${currentUsableTB.toFixed(2)} TB Short by ${diff.toFixed(2)} TB`;
             statusElem.className = "target-status status-fail";
         }
+    }
+
+    // --- LICENSING CALCULATOR LOGIC ---
+    function calculateLicensing() {
+        const deployment = document.getElementById('licDeploymentType').value;
+        const termCode = document.getElementById('licSubscriptionTerm').value;
+
+        let bundleType = "Standard";
+        let deploymentLabel = "Hypervisor only";
+
+        if (deployment === 'hypervisor') {
+            bundleType = "Standard";
+            deploymentLabel = "Hypervisor only";
+        } else if (deployment === 'hci') {
+            bundleType = "Advanced";
+            deploymentLabel = "Full HCI";
+        } else if (deployment === 'private_cloud') {
+            bundleType = "Enterprise";
+            deploymentLabel = "Full Private Cloud Stack";
+        }
+
+        const totalSockets = globalComputeNodesCount * globalSocketsPerNode;
+        const skuString = `${totalSockets} x Bundle-${bundleType}-${termCode}`;
+
+        let termYearsText = "1 Year";
+        if (termCode === '3Y') termYearsText = "3 Years";
+        if (termCode === '5Y') termYearsText = "5 Years";
+
+        document.getElementById('outLicDeploymentName').innerText = deploymentLabel;
+        document.getElementById('outTotalCPUSockets').innerText = `${totalSockets} Sockets`;
+        document.getElementById('outLicQuantity').innerText = skuString;
+        document.getElementById('outLicSupportTerm').innerText = termYearsText;
     }
 
     // --- COMPUTE SIZING CALCULATOR LOGIC ---
@@ -942,11 +1079,11 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>RAM per VM (GB)</label>
+                    <label>RAM per VM in GB</label>
                     <input type="number" class="ram" value="32" min="1" required oninput="calculateSizing()">
                 </div>
                 <div class="form-group">
-                    <label style="color: var(--storage-theme);">Storage per VM (GB)</label>
+                    <label style="color: var(--storage-theme);">Storage per VM in GB</label>
                     <input type="number" class="vmStorageGB" value="300" min="1" required oninput="calculateSizing()">
                 </div>
                 <div class="checkbox-group">
@@ -1116,18 +1253,19 @@
         const useTiering = evalRes.useTiering;
 
         globalComputeNodesCount = nodes;
+        globalSocketsPerNode = tmpl.cpus;
+
         document.getElementById('stNodeCount').value = nodes;
 
         let limitingFactors = [];
         if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores");
         if (useTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
 
-        document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" & ") : "Minimum 2-Node Cluster Rule";
+        document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" and ") : "Minimum 2 Node Cluster Rule";
         document.getElementById('outNodes').innerText = nodes + " Nodes";
-        document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores (${tmpl.totalCores} Total Cores per server)`;
-        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM (${evalRes.ramSpec.dimmCount} x 64GB DIMMs - ${tmpl.dimmSlots} slots max)`;
+        document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores, ${tmpl.totalCores} Total Cores per server`;
+        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x 64GB DIMMs`;
 
-        // Cluster summary split row
         const splitRow = document.getElementById('memorySplitRow');
         if (useTiering) {
             document.getElementById('outTotalDRAM').innerText = globalCalculatedDRAM + " GB";
@@ -1137,20 +1275,18 @@
             splitRow.style.display = 'none';
         }
 
-        // Per-node tiering disk text
         const tieringRow = document.getElementById('tieringDiskNodeRow');
 
         if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / nodes);
             
-            // 1:1 calculation based on physical DRAM
             const physDRAM = evalRes.ramSpec.ramGB;
             const maxTieredCap = physDRAM;
             const totalMaxRAM = physDRAM * 2;
 
             document.getElementById('outPerNodeTieringDisk').innerText = 
-                `1 x ${nvmeSizeTB} TB NVMe SSD (Provides additional ${tieredRamPerNode} GB from this Disk, plus ample capacity up to 1:1 DRAM calculation of ${maxTieredCap} GB max tiering / ${totalMaxRAM} GB total RAM per node)`;
+                `1 x ${nvmeSizeTB} TB NVMe SSD provides additional ${tieredRamPerNode} GB from this Disk`;
             tieringRow.style.display = 'flex';
         } else {
             tieringRow.style.display = 'none';
@@ -1158,13 +1294,14 @@
 
         const nodeNoteElement = document.getElementById('nodeNote');
         if (nodes === 2) {
-            nodeNoteElement.innerHTML = "<strong>2-Node Cluster Deployment Notice:</strong> Requires an external Witness Node.";
+            nodeNoteElement.innerHTML = "<strong>2 Node Cluster Deployment Notice:</strong> Requires an external Witness Node.";
         } else {
             nodeNoteElement.innerHTML = "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.";
         }
 
         document.getElementById('nodeResultsBlock').style.display = 'block';
         calculateStorageOnly();
+        calculateLicensing();
     }
 
     window.onload = function() {
