@@ -369,6 +369,17 @@
             border: 1px solid #c3e6cb;
         }
 
+        .cache-recommend-box {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-left: 4px solid #1e88e5;
+            padding: 10px 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #0d47a1;
+        }
+
         @media (max-width: 1100px) {
             .main-wrapper {
                 flex-direction: column;
@@ -564,17 +575,23 @@
             <div class="target-status" id="rightTargetStatus">Current Usable Config: 3.19 TB (Sufficient)</div>
         </div>
         
-        <!-- SECTION 1: STORAGE NODE & SLOT CONSTRAINTS -->
-        <div class="storage-section-title">1. Storage Node & Slot Configuration</div>
+        <!-- SECTION 1: ARCHITECTURE & NODE CONSTRAINTS -->
+        <div class="storage-section-title">1. Storage Architecture & Slot Configuration</div>
         <div class="policy-select-box">
             <div class="grid">
-                <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-group">
+                    <label for="stArchitecture" style="color: var(--storage-theme);">Storage Architecture:</label>
+                    <select id="stArchitecture" onchange="onStorageArchChange()">
+                        <option value="flash" selected>Full Flash (All SSD)</option>
+                        <option value="hybrid">Hybrid (HDD + SSD Cache)</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="stNodeCount" style="color: var(--storage-theme);">Cluster Server Nodes:</label>
                     <input type="number" id="stNodeCount" value="2" min="2" step="1" oninput="calculateStorageOnly()">
                 </div>
-                <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-group" style="grid-column: span 2;">
                     <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Data Disk Slots / Node:</label>
-                    <!-- ALIGNED DEFAULT TO 12 DRIVES PER NODE -->
                     <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
                 </div>
             </div>
@@ -596,7 +613,7 @@
         <table class="storage-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Disk Size (TB)</th>
+                    <th style="width: 25%;" id="thDiskTypeLabel">SSD Disk Size (TB)</th>
                     <th style="width: 20%;">Total Qty</th>
                     <th style="width: 25%;">Raw Size</th>
                     <th style="width: 25%;">Usable Capacity</th>
@@ -624,8 +641,18 @@
             </tbody>
         </table>
 
+        <!-- HYBRID SSD CACHE RECOMMENDATION DISPLAY -->
+        <div id="hybridCacheBox" class="cache-recommendation-box cache-recommend-box" style="display: none;">
+            <strong>⚡ SSD Cache Recommendation (Per Node):</strong>
+            <div id="cacheDetailText" style="margin-top: 4px;">Calculating recommended cache...</div>
+        </div>
+
         <div class="storage-summary">
             <h3>Storage & Physical Alignment Summary</h3>
+            <div class="result-item">
+                <span>Architecture Mode:</span>
+                <span class="value" id="outArchMode">Full Flash</span>
+            </div>
             <div class="result-item">
                 <span>Configured Cluster Nodes:</span>
                 <span class="value" id="outStNodes">2 Nodes</span>
@@ -671,6 +698,32 @@
     let globalComputeNodesCount = 2;
     let storageRowCounter = 1;
 
+    function onStorageArchChange() {
+        const arch = document.getElementById('stArchitecture').value;
+        const labelElem = document.getElementById('thDiskTypeLabel');
+        const rows = document.querySelectorAll('#storageRowsContainer tr');
+
+        if (arch === 'hybrid') {
+            labelElem.innerText = "HDD Disk Size (TB)";
+            // Set default HDD size if user switches to hybrid for convenience
+            rows.forEach(r => {
+                const input = r.querySelector('.stDiskSize');
+                if (input.value == 1.92 || input.value == 0.96) {
+                    input.value = 4.0;
+                }
+            });
+        } else {
+            labelElem.innerText = "SSD Disk Size (TB)";
+            rows.forEach(r => {
+                const input = r.querySelector('.stDiskSize');
+                if (input.value == 4.0 || input.value == 8.0) {
+                    input.value = 1.92;
+                }
+            });
+        }
+        calculateStorageOnly();
+    }
+
     function addStorageRow() {
         storageRowCounter++;
         const container = document.getElementById('storageRowsContainer');
@@ -678,9 +731,12 @@
         const rowId = `stRow_${storageRowCounter}`;
         tr.id = rowId;
 
+        const isHybrid = document.getElementById('stArchitecture').value === 'hybrid';
+        const defaultDiskSize = isHybrid ? 4.0 : 1.92;
+
         tr.innerHTML = `
             <td>
-                <input type="number" class="stDiskSize" value="1.92" min="0.1" step="0.01" oninput="calculateStorageOnly()">
+                <input type="number" class="stDiskSize" value="${defaultDiskSize}" min="0.1" step="0.01" oninput="calculateStorageOnly()">
             </td>
             <td>
                 <input type="number" class="stDiskQty" value="2" min="1" step="1" oninput="calculateStorageOnly()">
@@ -709,6 +765,7 @@
     }
 
     function calculateStorageOnly() {
+        const arch = document.getElementById('stArchitecture').value;
         const stNodes = parseInt(document.getElementById('stNodeCount').value) || 2;
         const maxSlotsPerNode = parseInt(document.getElementById('stMaxSlotsPerNode').value) || 12;
         const copyPolicy = parseInt(document.getElementById('stCopyPolicy').value) || 2;
@@ -736,6 +793,7 @@
         const totalAvailableSlots = stNodes * maxSlotsPerNode;
         const disksPerNode = (totalQty / stNodes).toFixed(1);
 
+        document.getElementById('outArchMode').innerText = arch === 'hybrid' ? "Hybrid (HDD + SSD Cache)" : "Full Flash (All-SSD)";
         document.getElementById('outStNodes').innerText = stNodes + " Nodes";
         document.getElementById('outTotalSlotCapacity').innerText = `${totalAvailableSlots} Slots (${maxSlotsPerNode}/node)`;
         document.getElementById('outTotalDisks').innerText = `${totalQty} Disks (${disksPerNode}/node avg)`;
@@ -743,6 +801,39 @@
         document.getElementById('outTotalRawStorage').innerText = totalRawTB.toFixed(2) + " TB";
         document.getElementById('outTotalUsableStorage').innerText = totalUsableTB.toFixed(2) + " TB";
         document.getElementById('formulaText').innerText = `Usable Capacity = (Raw Size / ${copyPolicy}) × 83%`;
+
+        // HYBRID SSD CACHE AUTOMATIC CALCULATOR
+        const cacheBox = document.getElementById('hybridCacheBox');
+        if (arch === 'hybrid') {
+            cacheBox.style.display = 'block';
+            const rawPerNodeTB = totalRawTB / stNodes;
+            const cache10Percent = rawPerNodeTB * 0.10;
+            const cache20Percent = rawPerNodeTB * 0.20;
+
+            // Pick recommended cache disk size per node (Standard SSD sizes: 1.92, 3.84, 7.68 TB)
+            let recommendedSSDSize = 1.92;
+            let qtySSD = 1;
+
+            if (cache10Percent <= 1.92) {
+                recommendedSSDSize = 1.92;
+            } else if (cache10Percent <= 3.84) {
+                recommendedSSDSize = 3.84;
+            } else if (cache10Percent <= 7.68) {
+                recommendedSSDSize = 7.68;
+            } else {
+                recommendedSSDSize = 7.68;
+                qtySSD = Math.ceil(cache10Percent / 7.68);
+            }
+
+            const currentRatio = rawPerNodeTB > 0 ? ((recommendedSSDSize * qtySSD) / rawPerNodeTB * 100).toFixed(1) : 0;
+
+            document.getElementById('cacheDetailText').innerHTML = 
+                `• Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
+                `• Required Cache Range (10% - 20%): <strong>${cache10Percent.toFixed(2)} TB – ${cache20Percent.toFixed(2)} TB</strong><br>` +
+                `• <strong>Recommended SSD Cache:</strong> ${qtySSD} x <strong>${recommendedSSDSize} TB Enterprise SSD</strong> per node (~${currentRatio}% cache ratio).`;
+        } else {
+            cacheBox.style.display = 'none';
+        }
 
         // CROSS-CHECK STORAGE VS COMPUTE NODES ADVICE
         const adviceBox = document.getElementById('storageAdviceBox');
