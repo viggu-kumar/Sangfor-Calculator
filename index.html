@@ -23,7 +23,6 @@
             padding: 20px;
         }
 
-        /* Dual Column Layout */
         .main-wrapper {
             display: flex;
             gap: 20px;
@@ -75,6 +74,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .storage-section-title {
+            background: #e6f2f2;
+            padding: 10px 14px;
+            border-left: 4px solid var(--storage-theme);
+            font-weight: bold;
+            margin: 20px 0 15px 0;
+            color: var(--storage-theme);
         }
 
         .vm-group-card {
@@ -334,13 +342,33 @@
 
         .policy-select-box {
             background: #f0f7f7;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             margin-bottom: 15px;
             border: 1px solid #cce5e5;
         }
 
-        /* Responsive Layout for Mobile */
+        .storage-advice-alert {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .advice-warning {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .advice-ok {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
         @media (max-width: 1100px) {
             .main-wrapper {
                 flex-direction: column;
@@ -510,12 +538,12 @@
                         <span class="value" id="outPerNodeCPU">-</span>
                     </div>
                     <div class="result-item">
-                        <span>DRAM per Node:</span>
+                        <span>Physical DRAM Config:</span>
                         <span class="value" id="outPerNodeRAM">-</span>
                     </div>
                     <div class="result-item" id="tieringDiskNodeRow" style="display:none; color:#0056b3;">
-                        <span>NVMe Tiering Disk:</span>
-                        <span class="value" id="outPerNodeTieringDisk">-</span>
+                        <span style="min-width: 140px;">NVMe Tiering Disk:</span>
+                        <span class="value" id="outPerNodeTieringDisk" style="text-align: right;">-</span>
                     </div>
                 </div>
             </div>
@@ -530,13 +558,29 @@
     <div class="right-panel">
         <h2>Sangfor HCI Sizer - Storage</h2>
 
-        <!-- DYNAMIC TARGET STORAGE BANNER LINKED FROM LEFT PANEL -->
         <div class="target-storage-banner">
             <div class="target-title">Target VM Usable Storage Required</div>
             <div class="target-value" id="rightTargetStorageVal">2.40 TB</div>
             <div class="target-status" id="rightTargetStatus">Current Usable Config: 3.19 TB (Sufficient)</div>
         </div>
         
+        <!-- SECTION 1: STORAGE NODE & SLOT CONSTRAINTS -->
+        <div class="storage-section-title">1. Storage Node & Slot Configuration</div>
+        <div class="policy-select-box">
+            <div class="grid">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stNodeCount" style="color: var(--storage-theme);">Cluster Server Nodes:</label>
+                    <input type="number" id="stNodeCount" value="2" min="2" step="1" oninput="calculateStorageOnly()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Data Disk Slots / Node:</label>
+                    <!-- ALIGNED DEFAULT TO 12 DRIVES PER NODE -->
+                    <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
+                </div>
+            </div>
+        </div>
+
+        <div class="storage-section-title">2. Replica Policy & Drive Selection</div>
         <div class="policy-select-box">
             <div class="form-group" style="margin-bottom: 0;">
                 <label for="stCopyPolicy" style="color: var(--storage-theme);">Select Replica / Copy Policy:</label>
@@ -553,7 +597,7 @@
             <thead>
                 <tr>
                     <th style="width: 25%;">Disk Size (TB)</th>
-                    <th style="width: 20%;">Qty</th>
+                    <th style="width: 20%;">Total Qty</th>
                     <th style="width: 25%;">Raw Size</th>
                     <th style="width: 25%;">Usable Capacity</th>
                     <th style="width: 5%;"></th>
@@ -580,16 +624,23 @@
             </tbody>
         </table>
 
-        <!-- TOTAL STORAGE SUMMARY -->
         <div class="storage-summary">
-            <h3>Storage Totals Summary</h3>
+            <h3>Storage & Physical Alignment Summary</h3>
+            <div class="result-item">
+                <span>Configured Cluster Nodes:</span>
+                <span class="value" id="outStNodes">2 Nodes</span>
+            </div>
+            <div class="result-item">
+                <span>Total Cluster Disk Slots Available:</span>
+                <span class="value" id="outTotalSlotCapacity">24 Slots (12/node)</span>
+            </div>
+            <div class="result-item">
+                <span>Total Storage Disks Selected:</span>
+                <span class="value" id="outTotalDisks">4 Disks (2/node)</span>
+            </div>
             <div class="result-item">
                 <span>Replica Policy:</span>
                 <span class="value" id="outPolicyText">2 Copies</span>
-            </div>
-            <div class="result-item">
-                <span>Total Disks Count:</span>
-                <span class="value" id="outTotalDisks">4 Disks</span>
             </div>
             <div class="result-item">
                 <span>Total Raw Capacity:</span>
@@ -598,6 +649,11 @@
             <div class="result-item">
                 <span>Total Usable Capacity:</span>
                 <span class="value" id="outTotalUsableStorage" style="color: var(--storage-theme); font-size: 1.1rem;">3.19 TB</span>
+            </div>
+
+            <!-- CROSS-SECTION ADVICE BLOCK -->
+            <div id="storageAdviceBox" class="storage-advice-alert advice-ok">
+                ✓ Disk slot capacity is sufficient across configured nodes.
             </div>
         </div>
 
@@ -611,10 +667,8 @@
 </div>
 
 <script>
-    // --- GLOBAL VARIABLES FOR PANEL LINKING ---
     let globalTargetUsableStorageTB = 2.40;
-
-    // --- STORAGE CALCULATOR LOGIC ---
+    let globalComputeNodesCount = 2;
     let storageRowCounter = 1;
 
     function addStorageRow() {
@@ -655,7 +709,10 @@
     }
 
     function calculateStorageOnly() {
+        const stNodes = parseInt(document.getElementById('stNodeCount').value) || 2;
+        const maxSlotsPerNode = parseInt(document.getElementById('stMaxSlotsPerNode').value) || 12;
         const copyPolicy = parseInt(document.getElementById('stCopyPolicy').value) || 2;
+
         const rows = document.querySelectorAll('#storageRowsContainer tr');
         let totalQty = 0;
         let totalRawTB = 0;
@@ -676,11 +733,42 @@
             totalUsableTB += usableTB;
         });
 
+        const totalAvailableSlots = stNodes * maxSlotsPerNode;
+        const disksPerNode = (totalQty / stNodes).toFixed(1);
+
+        document.getElementById('outStNodes').innerText = stNodes + " Nodes";
+        document.getElementById('outTotalSlotCapacity').innerText = `${totalAvailableSlots} Slots (${maxSlotsPerNode}/node)`;
+        document.getElementById('outTotalDisks').innerText = `${totalQty} Disks (${disksPerNode}/node avg)`;
         document.getElementById('outPolicyText').innerText = copyPolicy + " Copies";
-        document.getElementById('outTotalDisks').innerText = totalQty + " Disks";
         document.getElementById('outTotalRawStorage').innerText = totalRawTB.toFixed(2) + " TB";
         document.getElementById('outTotalUsableStorage').innerText = totalUsableTB.toFixed(2) + " TB";
         document.getElementById('formulaText').innerText = `Usable Capacity = (Raw Size / ${copyPolicy}) × 83%`;
+
+        // CROSS-CHECK STORAGE VS COMPUTE NODES ADVICE
+        const adviceBox = document.getElementById('storageAdviceBox');
+        let adviceMessages = [];
+
+        // Check 1: Are storage drive slots exceeded?
+        if (totalQty > totalAvailableSlots) {
+            const requiredNodesForStorage = Math.ceil(totalQty / maxSlotsPerNode);
+            const extraNodesNeeded = requiredNodesForStorage - stNodes;
+            adviceMessages.push(`⚠️ <strong>Disk Slot Limit Exceeded:</strong> Total selected drives (${totalQty}) exceed current slot capacity (${totalAvailableSlots} slots based on ${maxSlotsPerNode} max slots/node). Add <strong>${extraNodesNeeded} more node(s)</strong> or increase drive size.`);
+        }
+
+        // Check 2: Does storage node count match compute recommendation?
+        if (stNodes < globalComputeNodesCount) {
+            adviceMessages.push(`⚠️ <strong>Node Mismatch:</strong> Compute sizing requires at least <strong>${globalComputeNodesCount} nodes</strong>, but storage node input is set to <strong>${stNodes} nodes</strong>.`);
+        } else if (stNodes > globalComputeNodesCount) {
+            adviceMessages.push(`💡 <strong>Storage expansion note:</strong> You have configured ${stNodes} nodes for storage, which is higher than the compute requirement (${globalComputeNodesCount} nodes).`);
+        }
+
+        if (adviceMessages.length > 0) {
+            adviceBox.className = "storage-advice-alert advice-warning";
+            adviceBox.innerHTML = adviceMessages.join("<br><br>");
+        } else {
+            adviceBox.className = "storage-advice-alert advice-ok";
+            adviceBox.innerHTML = `✓ Storage physical slots are aligned across ${stNodes} nodes (${disksPerNode} drives/node). Fits perfectly with compute requirement!`;
+        }
 
         updateStorageStatus(totalUsableTB);
     }
@@ -798,10 +886,10 @@
     }
 
     function getScaledRAM(requiredRAMPerNode, maxDimmSlots) {
-        const presets = [128, 256, 512, 1024];
+        const presets = [64, 128, 256, 512, 1024];
         for (let ram of presets) {
             if (ram >= requiredRAMPerNode) {
-                const num64GBDimms = ram / 64;
+                const num64GBDimms = Math.ceil(ram / 64);
                 if (num64GBDimms <= maxDimmSlots) {
                     return { ramGB: ram, dimmCount: num64GBDimms };
                 }
@@ -854,19 +942,8 @@
         globalCalculatedNVMeRAM = recNVMeRAM;
 
         document.getElementById('outTotalVMs').innerText = totalVMs;
-        document.getElementById('outVCPU').innerText = totalVCPUs;
-        document.getElementById('outCores').innerText = physicalCoresNeeded + " Cores";
         document.getElementById('outTotalRAM').innerText = totalRAMNeeded + " GB";
         document.getElementById('outVMStorageReq').innerText = totalVMStorageTBWithOverhead.toFixed(2) + " TB";
-
-        const splitRow = document.getElementById('memorySplitRow');
-        if (recNVMeRAM > 0) {
-            document.getElementById('outTotalDRAM').innerText = recDRAM + " GB";
-            document.getElementById('outTotalNVMeRAM').innerText = recNVMeRAM + " GB";
-            splitRow.style.display = 'flex';
-        } else {
-            splitRow.style.display = 'none';
-        }
 
         document.getElementById('resultsBlock').style.display = 'block';
         document.getElementById('hardwareSection').style.display = 'block';
@@ -911,53 +988,78 @@
     }
 
     function evaluateHardware(tmpl) {
-        const hasTiering = globalCalculatedNVMeRAM > 0;
-
         const nodesByCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
+        let requiredNodes = Math.max(nodesByCPU, 2);
+
+        let totalRamPerNode = Math.ceil(globalCalculatedRAM / requiredNodes);
+        let useTiering = totalRamPerNode > 256 && globalCalculatedNVMeRAM > 0;
 
         let nodesByNVMeTier = 1;
-        if (hasTiering) {
+        if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const nvmeSizeGB = nvmeSizeTB * 1024;
-            const nvmeRamNeededPerNode = globalCalculatedNVMeRAM;
+            const nvmeRamNeededPerNode = Math.ceil(globalCalculatedNVMeRAM / requiredNodes);
             nodesByNVMeTier = Math.ceil(nvmeRamNeededPerNode / nvmeSizeGB);
+            requiredNodes = Math.max(requiredNodes, nodesByNVMeTier);
         }
 
-        let requiredNodes = Math.max(nodesByCPU, nodesByNVMeTier, 2);
+        totalRamPerNode = Math.ceil(globalCalculatedRAM / requiredNodes);
+        useTiering = totalRamPerNode > 256 && globalCalculatedNVMeRAM > 0;
 
-        const requiredDRAMPerNode = Math.ceil(globalCalculatedDRAM / requiredNodes);
-        const ramSpec = getScaledRAM(requiredDRAMPerNode, tmpl.dimmSlots);
+        let dramNeededPerNode = useTiering ? Math.ceil(globalCalculatedDRAM / requiredNodes) : totalRamPerNode;
+        const ramSpec = getScaledRAM(dramNeededPerNode, tmpl.dimmSlots);
 
         return {
             nodes: requiredNodes,
             nodesByCPU: nodesByCPU,
             nodesByNVMeTier: nodesByNVMeTier,
+            useTiering: useTiering,
             ramSpec: ramSpec
         };
     }
 
     function recalculateHardware() {
         const tmpl = getSelectedHardwareConfig();
-        const hasTiering = globalCalculatedNVMeRAM > 0;
-
         const evalRes = evaluateHardware(tmpl);
         const nodes = evalRes.nodes;
+        const useTiering = evalRes.useTiering;
+
+        globalComputeNodesCount = nodes;
+        document.getElementById('stNodeCount').value = nodes;
 
         let limitingFactors = [];
         if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores");
-        if (nodes === Math.ceil(globalCalculatedDRAM / evalRes.ramSpec.ramGB)) limitingFactors.push("DRAM Capacity");
-        if (hasTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
+        if (useTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
 
         document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" & ") : "Minimum 2-Node Cluster Rule";
         document.getElementById('outNodes').innerText = nodes + " Nodes";
         document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores (${tmpl.totalCores} Total Cores per server)`;
         document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM (${evalRes.ramSpec.dimmCount} x 64GB DIMMs - ${tmpl.dimmSlots} slots max)`;
 
+        // Cluster summary split row
+        const splitRow = document.getElementById('memorySplitRow');
+        if (useTiering) {
+            document.getElementById('outTotalDRAM').innerText = globalCalculatedDRAM + " GB";
+            document.getElementById('outTotalNVMeRAM').innerText = globalCalculatedNVMeRAM + " GB";
+            splitRow.style.display = 'flex';
+        } else {
+            splitRow.style.display = 'none';
+        }
+
+        // Per-node tiering disk text
         const tieringRow = document.getElementById('tieringDiskNodeRow');
-        if (hasTiering) {
+
+        if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / nodes);
-            document.getElementById('outPerNodeTieringDisk').innerText = `1 x ${nvmeSizeTB} TB NVMe SSD (Provides up to ${tieredRamPerNode} GB Tiered RAM per node)`;
+            
+            // 1:1 calculation based on physical DRAM
+            const physDRAM = evalRes.ramSpec.ramGB;
+            const maxTieredCap = physDRAM;
+            const totalMaxRAM = physDRAM * 2;
+
+            document.getElementById('outPerNodeTieringDisk').innerText = 
+                `1 x ${nvmeSizeTB} TB NVMe SSD (Provides additional ${tieredRamPerNode} GB from this Disk, plus ample capacity up to 1:1 DRAM calculation of ${maxTieredCap} GB max tiering / ${totalMaxRAM} GB total RAM per node)`;
             tieringRow.style.display = 'flex';
         } else {
             tieringRow.style.display = 'none';
@@ -971,6 +1073,7 @@
         }
 
         document.getElementById('nodeResultsBlock').style.display = 'block';
+        calculateStorageOnly();
     }
 
     window.onload = function() {
