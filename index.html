@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sangfor HCI Sizer - Full Solution Architecture</title>
+    <title>Sangfor HCI Architecture & Sizing Tool</title>
     <style>
         :root {
             --primary: #0056b3;
@@ -14,23 +14,85 @@
             --accent: #28a745;
             --storage-theme: #008080;
             --license-theme: #6f42c1;
-            --topo-theme: #0275d8;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 0 0 20px 0;
         }
 
+        /* HEADER BANNER */
+        .app-header {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-title-box h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .designer-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 14px 6px 8px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .designer-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .designer-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .designer-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #81d4fa;
+        }
+
+        .designer-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* MAIN TWO PANEL LAYOUT */
         .main-wrapper {
             display: flex;
             gap: 20px;
             max-width: 1600px;
             margin: 0 auto 20px auto;
+            padding: 0 20px;
             align-items: flex-start;
+            box-sizing: border-box;
         }
 
         .left-panel {
@@ -51,19 +113,22 @@
             border-top: 5px solid var(--storage-theme);
         }
 
-        .topology-wrapper {
+        .topology-wrapper, .license-wrapper {
             max-width: 1600px;
             margin: 0 auto 20px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .topology-card {
             background: var(--card);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             padding: 25px;
-            border-top: 5px solid var(--topo-theme);
+            border-top: 5px solid #17a2b8;
         }
 
-        .license-wrapper {
-            max-width: 1600px;
-            margin: 0 auto;
+        .license-card-inner {
             background: var(--card);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -71,532 +136,131 @@
             border-top: 5px solid var(--license-theme);
         }
 
-        h2, h3 {
-            color: var(--primary);
-            margin-top: 0;
-        }
-
-        .topology-wrapper h2 {
-            color: var(--topo-theme);
-            border-bottom: 2px solid var(--topo-theme);
-            padding-bottom: 10px;
-        }
-
-        .right-panel h2 {
-            color: var(--storage-theme);
-            border-bottom: 2px solid var(--storage-theme);
-            padding-bottom: 10px;
-        }
-
-        .left-panel h2 {
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 10px;
-        }
-
-        .license-wrapper h2 {
-            color: var(--license-theme);
-            border-bottom: 2px solid var(--license-theme);
-            padding-bottom: 10px;
-        }
+        h2, h3 { color: var(--primary); margin-top: 0; }
+        .left-panel h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .right-panel h2 { color: var(--storage-theme); border-bottom: 2px solid var(--storage-theme); padding-bottom: 10px; }
+        .topology-card h2 { color: #17a2b8; border-bottom: 2px solid #17a2b8; padding-bottom: 10px; }
+        .license-wrapper h2 { color: var(--license-theme); border-bottom: 2px solid var(--license-theme); padding-bottom: 10px; }
 
         .section-title {
-            background: #f0f4f8;
-            padding: 10px 14px;
-            border-left: 4px solid var(--primary);
-            font-weight: bold;
-            margin: 20px 0 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #f0f4f8; padding: 10px 14px; border-left: 4px solid var(--primary);
+            font-weight: bold; margin: 20px 0 15px 0; display: flex; justify-content: space-between; align-items: center;
         }
-
         .storage-section-title {
-            background: #e6f2f2;
-            padding: 10px 14px;
-            border-left: 4px solid var(--storage-theme);
-            font-weight: bold;
-            margin: 20px 0 15px 0;
-            color: var(--storage-theme);
+            background: #e6f2f2; padding: 10px 14px; border-left: 4px solid var(--storage-theme);
+            font-weight: bold; margin: 20px 0 15px 0; color: var(--storage-theme);
         }
-
         .license-section-title {
-            background: #f3ebf9;
-            padding: 10px 14px;
-            border-left: 4px solid var(--license-theme);
-            font-weight: bold;
-            margin: 20px 0 15px 0;
-            color: var(--license-theme);
+            background: #f3ebf9; padding: 10px 14px; border-left: 4px solid var(--license-theme);
+            font-weight: bold; margin: 20px 0 15px 0; color: var(--license-theme);
         }
 
         .mode-toggle-box {
-            background: #e9f3ff;
-            border: 1px solid #b8daff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
+            background: #e9f3ff; border: 1px solid #b8daff; padding: 10px 14px; border-radius: 6px;
+            margin-bottom: 15px; display: flex; align-items: center; gap: 20px;
         }
+        .mode-toggle-box label { font-size: 0.85rem; color: #0056b3; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
-        .mode-toggle-box label {
-            font-size: 0.85rem;
-            color: #0056b3;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .vm-group-card { border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-bottom: 15px; background-color: #fafafa; }
+        .vm-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; }
+        .vm-group-title { font-weight: bold; color: var(--primary); font-size: 0.95rem; }
 
-        .vm-group-card {
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: #fafafa;
-        }
+        .btn-remove { background: #dc3545; color: white; border: none; padding: 4px 8px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; }
+        .btn-remove:hover { background: #bd2130; }
 
-        .vm-group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px dashed var(--border);
-            padding-bottom: 8px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 22px; }
+        .checkbox-group label { font-size: 0.82rem; margin-bottom: 0; cursor: pointer; }
+        label { font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
+        input, select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
 
-        .vm-group-title {
-            font-weight: bold;
-            color: var(--primary);
-            font-size: 0.95rem;
-        }
+        .btn-add { background-color: var(--accent); color: white; border: none; padding: 8px 14px; font-size: 0.85rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .btn-add:hover { background-color: #218838; }
+        .btn-calc { width: 100%; background-color: var(--primary); color: white; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .btn-calc:hover { background-color: #003d80; }
 
-        .btn-remove {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+        .results { margin-top: 25px; background-color: #e9f3ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 0 4px 4px 0; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .result-item span.value { font-weight: bold; }
+        .recommendation-badge { background-color: #28a745; color: white; padding: 3px 8px; font-size: 0.75rem; border-radius: 12px; font-weight: bold; text-transform: uppercase; }
+        .note-box { font-size: 0.85rem; color: #555; background: #fff; padding: 10px; border-radius: 4px; margin-top: 12px; border: 1px solid #d0d0d0; }
+        .ratio-input-wrapper { display: flex; align-items: center; gap: 5px; }
+        .ratio-prefix { font-weight: bold; color: #555; }
+        .spec-card { background: white; border: 1px solid #b8daff; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+        .custom-inputs-box { background: #fff3cd; border: 1px solid #ffeba8; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
 
-        .btn-remove:hover {
-            background: #bd2130;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 22px;
-        }
-
-        .checkbox-group label {
-            font-size: 0.82rem;
-            margin-bottom: 0;
-            cursor: pointer;
-        }
-
-        label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        input, select {
-            padding: 8px 10px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        .btn-add {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-add:hover {
-            background-color: #218838;
-        }
-
-        .btn-calc {
-            width: 100%;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn-calc:hover {
-            background-color: #003d80;
-        }
-
-        .results {
-            margin-top: 25px;
-            background-color: #e9f3ff;
-            border-left: 4px solid var(--primary);
-            padding: 15px 20px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .result-item span.value {
-            font-weight: bold;
-        }
-
-        .recommendation-badge {
-            background-color: #28a745;
-            color: white;
-            padding: 3px 8px;
-            font-size: 0.75rem;
-            border-radius: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .note-box {
-            font-size: 0.85rem;
-            color: #555;
-            background: #fff;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 12px;
-            border: 1px solid #d0d0d0;
-        }
-
-        .ratio-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .ratio-prefix {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .spec-card {
-            background: white;
-            border: 1px solid #b8daff;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-
-        .custom-inputs-box {
-            background: #fff3cd;
-            border: 1px solid #ffeba8;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        /* STORAGE STYLES */
-        .target-storage-banner {
-            background-color: #e6f4ea;
-            border: 1px solid #a8dab5;
-            border-left: 5px solid #28a745;
-            border-radius: 6px;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-        }
-
-        .target-title {
-            font-size: 0.85rem;
-            color: #2e7d32;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .target-value {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #1b5e20;
-            margin-top: 2px;
-        }
-
-        .target-status {
-            font-size: 0.8rem;
-            margin-top: 4px;
-            font-weight: 600;
-        }
-
+        .target-storage-banner { background-color: #e6f4ea; border: 1px solid #a8dab5; border-left: 5px solid #28a745; border-radius: 6px; padding: 12px 15px; margin-bottom: 15px; }
+        .target-title { font-size: 0.85rem; color: #2e7d32; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .target-value { font-size: 1.4rem; font-weight: bold; color: #1b5e20; margin-top: 2px; }
+        .target-status { font-size: 0.8rem; margin-top: 4px; font-weight: 600; }
         .status-pass { color: #28a745; }
         .status-fail { color: #dc3545; }
 
-        .storage-table {
+        .storage-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .storage-table th { background-color: #f0f7f7; color: var(--storage-theme); font-size: 0.8rem; text-align: left; padding: 8px; border-bottom: 2px solid var(--storage-theme); }
+        .storage-table td { padding: 8px 4px; border-bottom: 1px solid #e0e0e0; }
+        .storage-table input { width: 90%; }
+        .calc-output { background-color: #e6f2f2; padding: 8px; border-radius: 4px; font-weight: bold; color: var(--storage-theme); font-size: 0.9rem; display: block; }
+        .storage-summary { margin-top: 20px; background: #e6f2f2; border-left: 4px solid var(--storage-theme); padding: 15px; border-radius: 0 4px 4px 0; }
+        .storage-summary h3 { color: var(--storage-theme); margin-bottom: 10px; }
+        .policy-select-box { background: #f0f7f7; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cce5e5; }
+        .storage-advice-alert { margin-top: 10px; padding: 10px 12px; border-radius: 4px; font-size: 0.85rem; line-height: 1.4; font-weight: 600; }
+        .advice-warning { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .advice-ok { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .cache-recommend-box { background-color: #e3f2fd; border: 1px solid #90caf9; border-left: 4px solid #1e88e5; padding: 10px 12px; border-radius: 4px; margin-top: 12px; font-size: 0.85rem; color: #0d47a1; }
+
+        .topology-svg-container {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .storage-table th {
-            background-color: #f0f7f7;
-            color: var(--storage-theme);
-            font-size: 0.8rem;
-            text-align: left;
-            padding: 8px;
-            border-bottom: 2px solid var(--storage-theme);
-        }
-
-        .storage-table td {
-            padding: 8px 4px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .storage-table input {
-            width: 90%;
-        }
-
-        .calc-output {
-            background-color: #e6f2f2;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: var(--storage-theme);
-            font-size: 0.9rem;
-            display: block;
-        }
-
-        .storage-summary {
-            margin-top: 20px;
-            background: #e6f2f2;
-            border-left: 4px solid var(--storage-theme);
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
             padding: 15px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .storage-summary h3 {
-            color: var(--storage-theme);
-            margin-bottom: 10px;
-        }
-
-        .policy-select-box {
-            background: #f0f7f7;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border: 1px solid #cce5e5;
-        }
-
-        .storage-advice-alert {
-            margin-top: 10px;
-            padding: 10px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            font-weight: 600;
-        }
-
-        .advice-warning {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .advice-ok {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .cache-recommend-box {
-            background-color: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-left: 4px solid #1e88e5;
-            padding: 10px 12px;
-            border-radius: 4px;
-            margin-top: 12px;
-            font-size: 0.85rem;
-            color: #0d47a1;
-        }
-
-        /* TOPOLOGY CANVAS CONTAINER */
-        .topology-container {
-            background: #f8fbff;
-            border: 1px solid #d0e1f9;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        .topo-switches-layer {
             display: flex;
             justify-content: center;
-            gap: 80px;
-            margin-bottom: 40px;
-            position: relative;
-            z-index: 2;
+            align-items: center;
+            overflow-x: auto;
         }
 
-        .topo-nodes-layer {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            position: relative;
-            z-index: 2;
-            flex-wrap: wrap;
-        }
+        .license-summary-card { background: #f8f4fc; border: 1px solid #dcd0f0; border-left: 5px solid var(--license-theme); padding: 18px; border-radius: 6px; margin-top: 15px; }
+        .license-summary-card h3 { color: var(--license-theme); margin-bottom: 12px; }
+        .license-badge { background-color: var(--license-theme); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
 
-        .switch-box {
-            background: #343a40;
-            color: #ffffff;
-            border-radius: 6px;
-            padding: 10px 18px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            min-width: 160px;
-            border-bottom: 3px solid #00d2d3;
-        }
-
-        .switch-title {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #00d2d3;
-            letter-spacing: 0.5px;
-        }
-
-        .switch-desc {
-            font-size: 0.75rem;
-            color: #cccccc;
-            margin-top: 2px;
-        }
-
-        .node-box {
-            background: #ffffff;
-            border: 2px solid var(--primary);
-            border-radius: 6px;
-            padding: 12px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-            width: 160px;
-            position: relative;
-            transition: transform 0.2s;
-        }
-
-        .node-box:hover {
-            transform: translateY(-3px);
-        }
-
-        .node-icon {
-            background: #e9f3ff;
-            color: var(--primary);
-            padding: 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin-bottom: 6px;
-            border: 1px solid #b8daff;
-        }
-
-        .node-title {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .node-detail {
-            font-size: 0.72rem;
-            color: #666;
-            margin-top: 4px;
-            line-height: 1.3;
-        }
-
-        .svg-connections {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* LICENSING SUMMARY BOX */
-        .license-summary-card {
-            background: #f8f4fc;
-            border: 1px solid #dcd0f0;
-            border-left: 5px solid var(--license-theme);
-            padding: 18px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-
-        .license-summary-card h3 {
-            color: var(--license-theme);
-            margin-bottom: 12px;
-        }
-
-        .license-badge {
-            background-color: var(--license-theme);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
+        footer { text-align: center; font-size: 0.8rem; color: #666; margin-top: 30px; }
 
         @media (max-width: 1100px) {
-            .main-wrapper {
-                flex-direction: column;
-            }
-            .left-panel, .right-panel, .license-wrapper, .topology-wrapper {
-                width: 100%;
-                box-sizing: border-box;
-            }
+            .main-wrapper { flex-direction: column; padding: 0 10px; }
+            .left-panel, .right-panel, .topology-wrapper, .license-wrapper { width: 100%; box-sizing: border-box; }
         }
     </style>
 </head>
 <body>
 
-<!-- MAIN 2-COLUMN WRAPPER: COMPUTE & STORAGE -->
-<div class="main-wrapper">
+<!-- HEADER BANNER -->
+<header class="app-header">
+    <div class="header-title-box">
+        <h1>Sangfor HCI Architecture & Sizing Tool</h1>
+    </div>
+    <div class="designer-badge">
+        <img src="MyPic.jpg" alt="Vignesh" class="designer-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Vignesh&background=0D8ABC&color=fff&size=128';">
+        <div class="designer-text">
+            <span class="designer-label">Designed By</span>
+            <span class="designer-name">Vignesh</span>
+        </div>
+    </div>
+</header>
 
+<div class="main-wrapper">
     <!-- LEFT PANEL: COMPUTE SIZING CALCULATOR -->
     <div class="left-panel">
         <h2>Sangfor HCI Sizer - Compute</h2>
         
         <form id="sizerForm">
-            <!-- WORKLOAD REQUIREMENT SECTION -->
             <div class="section-title">
                 <span>1. Workload Requirements</span>
                 <button type="button" class="btn-add" id="btnAddVmGroup" onclick="addVmGroup()">+ Add VM Group</button>
             </div>
 
-            <!-- MODE TOGGLE RADIO BUTTONS -->
             <div class="mode-toggle-box">
                 <label>
                     <input type="radio" name="inputMode" value="groups" checked onchange="toggleInputMode()">
@@ -608,7 +272,14 @@
                 </label>
             </div>
 
-            <!-- MODE 1: ITEMIZATION PER VM GROUP -->
+            <div class="form-group" style="background: #f0f7f7; padding: 12px; border-radius: 6px; border: 1px solid #cce5e5; margin-bottom: 15px;">
+                <label for="workloadArch" style="color: var(--storage-theme); font-weight: bold;">Required Storage Architecture:</label>
+                <select id="workloadArch" onchange="onWorkloadArchChange()">
+                    <option value="flash" selected>Full Flash All SSD</option>
+                    <option value="hybrid">Hybrid HDD plus SSD Cache</option>
+                </select>
+            </div>
+
             <div id="vmGroupsContainer">
                 <div class="vm-group-card" id="vmGroup_1">
                     <div class="vm-group-header">
@@ -618,7 +289,7 @@
                     <div class="grid">
                         <div class="form-group">
                             <label>Group Name</label>
-                            <input type="text" class="groupName" value="General Workload">
+                            <input type="text" class="groupName" value="General Workload" oninput="calculateSizing()">
                         </div>
                         <div class="form-group">
                             <label>Number of VMs</label>
@@ -651,7 +322,6 @@
                 </div>
             </div>
 
-            <!-- MODE 2: DIRECT AGGREGATED TOTALS -->
             <div id="directInputContainer" class="vm-group-card" style="display: none; border-color: var(--primary);">
                 <div class="vm-group-header">
                     <span class="vm-group-title">Direct Workload Totals</span>
@@ -687,7 +357,6 @@
                 </div>
             </div>
 
-            <!-- MEMORY TIERING CONFIGURATION -->
             <div class="section-title">2. Memory Architecture and Tiering</div>
             <div class="grid">
                 <div class="form-group" id="nvmeSizeGroup">
@@ -698,7 +367,6 @@
 
             <button type="button" class="btn-calc" onclick="calculateSizing()">Calculate Compute Requirements</button>
 
-            <!-- HARDWARE SPECIFICATION SECTION -->
             <div id="hardwareSection" style="display: block;">
                 <div class="section-title">
                     <span>3. Recommended Server Hardware</span>
@@ -718,7 +386,6 @@
                     </div>
                 </div>
 
-                <!-- CUSTOM SERVER INPUTS -->
                 <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
                     <div class="grid">
                         <div class="form-group">
@@ -737,64 +404,42 @@
             </div>
         </form>
 
-        <!-- RESULTS SECTION -->
         <div class="results" id="resultsBlock">
             <h3>A. Compute Cluster Requirements</h3>
-            <div class="result-item">
-                <span>Total VMs:</span>
-                <span class="value" id="outTotalVMs">100</span>
-            </div>
-            <div class="result-item">
-                <span>Total vCPUs Requested:</span>
-                <span class="value" id="outVCPU">400</span>
-            </div>
-            <div class="result-item">
-                <span>Physical Cores Needed:</span>
-                <span class="value" id="outCores">134 Cores</span>
-            </div>
-            <div class="result-item">
-                <span>Physical RAM plus 20% Overhead:</span>
-                <span class="value" id="outTotalRAM">1920 GB</span>
-            </div>
-            <div class="result-item" style="color: var(--storage-theme); font-weight: bold;">
-                <span>VM Storage Required plus 20% Overhead:</span>
-                <span class="value" id="outVMStorageReq">23.44 TB</span>
-            </div>
+            <div class="result-item"><span>Total VMs:</span><span class="value" id="outTotalVMs">100</span></div>
+            <div class="result-item"><span>Total vCPUs Requested:</span><span class="value" id="outVCPU">400</span></div>
+            <div class="result-item"><span>Physical Cores Needed:</span><span class="value" id="outCores">134 Cores</span></div>
+            <div class="result-item"><span>Physical RAM plus 20% Overhead:</span><span class="value" id="outTotalRAM">1920 GB</span></div>
+            <div class="result-item" style="color: var(--storage-theme); font-weight: bold;"><span>VM Storage Required plus 20% Overhead:</span><span class="value" id="outVMStorageReq">23.44 TB</span></div>
             <div class="result-item" id="memorySplitRow" style="display: flex; background: #ffffff; padding: 6px 10px; border-radius: 4px; flex-direction: column;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span>DRAM Cluster Total:</span>
-                    <span class="value" id="outTotalDRAM">960 GB</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; color:#0056b3; margin-top:4px;">
-                    <span>NVMe Tiered RAM Cluster Total:</span>
-                    <span class="value" id="outTotalNVMeRAM">960 GB</span>
-                </div>
+                <div style="display:flex; justify-content:space-between;"><span>DRAM Cluster Total:</span><span class="value" id="outTotalDRAM">960 GB</span></div>
+                <div style="display:flex; justify-content:space-between; color:#0056b3; margin-top:4px;"><span>NVMe Tiered RAM Cluster Total:</span><span class="value" id="outTotalNVMeRAM">960 GB</span></div>
             </div>
 
             <div id="nodeResultsBlock" style="display: block; margin-top: 15px; border-top: 1px dashed var(--primary); padding-top: 10px;">
-                <h3>B. Server Node Compute Sizing Result</h3>
+                <h3>B. Server Node & Disk Sizing Recommendation</h3>
                 
                 <div class="spec-card">
                     <div class="result-item" style="font-size: 1.1rem; color: #0056b3; margin-bottom: 10px;">
                         <span>Required Server Nodes:</span>
                         <span class="value" id="outNodes">3 Nodes</span>
                     </div>
-                    <div class="result-item">
-                        <span>Bottleneck Factor:</span>
-                        <span class="value" id="outLimitingFactor">CPU Cores</span>
-                    </div>
-                    <div class="result-item">
-                        <span>CPU Spec:</span>
-                        <span class="value" id="outPerNodeCPU">2 CPU x 32 Cores, 64 Total Cores per server</span>
-                    </div>
-                    <div class="result-item">
-                        <span>Physical DRAM Config:</span>
-                        <span class="value" id="outPerNodeRAM">512 GB Physical DRAM, 8 x 64GB DIMMs</span>
-                    </div>
+                    <div class="result-item"><span>Bottleneck Factor:</span><span class="value" id="outLimitingFactor">CPU Cores</span></div>
+                    <div class="result-item"><span>CPU Spec:</span><span class="value" id="outPerNodeCPU">2 CPU x 32 Cores, 64 Total Cores per server</span></div>
+                    <div class="result-item"><span>Physical DRAM Config:</span><span class="value" id="outPerNodeRAM">512 GB Physical DRAM, 8 x 64GB DIMMs</span></div>
                     <div class="result-item" id="tieringDiskNodeRow" style="display:flex; color:#0056b3;">
                         <span style="min-width: 140px;">NVMe Tiering Disk:</span>
-                        <span class="value" id="outPerNodeTieringDisk" style="text-align: right;">1 x 1.92 TB NVMe SSD provides additional 320 GB from this Disk</span>
+                        <span class="value" id="outPerNodeTieringDisk" style="text-align: right;">1 x 1.92 TB NVMe SSD consumes 1 slot per server</span>
                     </div>
+                </div>
+
+                <div class="spec-card" style="border-color: var(--storage-theme); background-color: #f0f7f7;">
+                    <div class="result-item" style="font-size: 1rem; color: var(--storage-theme); font-weight: bold; margin-bottom: 8px;">
+                        <span>Auto-Calculated Storage Disks Recommendation:</span>
+                    </div>
+                    <div class="result-item"><span>Cluster Capacity Disks:</span><span class="value" id="outAutoDiskClusterRec" style="color: var(--storage-theme);">6 x 16 TB HDD across cluster</span></div>
+                    <div class="result-item"><span>Per Node Allocation:</span><span class="value" id="outAutoDiskPerNodeRec">2 HDDs per Server across 3 Nodes</span></div>
+                    <div class="result-item" id="outAutoCacheRow" style="display: none;"><span>SSD Cache Recommendation:</span><span class="value" id="outAutoCacheRec" style="color: #0d47a1;">1 x 1.92 TB SSD Cache per server</span></div>
                 </div>
             </div>
 
@@ -806,7 +451,10 @@
 
     <!-- RIGHT PANEL: STORAGE SIZING CALCULATOR -->
     <div class="right-panel">
-        <h2>Sangfor HCI Sizer - Storage</h2>
+        <h2>Sangfor HCI Sizer - Storage Manual Customizer</h2>
+        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
+            If manual calculations or specific disk bill-of-materials adjustments are required, customize disk quantities and drive sizes below.
+        </p>
 
         <div class="target-storage-banner">
             <div class="target-title">Target VM Usable Storage Required</div>
@@ -814,7 +462,6 @@
             <div class="target-status" id="rightTargetStatus">Current Usable Config: 25.50 TB Sufficient</div>
         </div>
         
-        <!-- SECTION 1: ARCHITECTURE & NODE CONSTRAINTS -->
         <div class="storage-section-title">1. Storage Architecture and Slot Configuration</div>
         <div class="policy-select-box">
             <div class="grid">
@@ -830,7 +477,7 @@
                     <input type="number" id="stNodeCount" value="3" min="2" step="1" oninput="calculateStorageOnly()">
                 </div>
                 <div class="form-group" style="grid-column: span 2;">
-                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Data Disk Slots Per Node:</label>
+                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Physical Disk Slots Per Node:</label>
                     <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
                 </div>
             </div>
@@ -861,26 +508,15 @@
             </thead>
             <tbody id="storageRowsContainer">
                 <tr id="stRow_1">
-                    <td>
-                        <input type="number" class="stDiskSize" value="3.84" min="0.1" step="0.01" oninput="calculateStorageOnly()">
-                    </td>
-                    <td>
-                        <input type="number" class="stDiskQty" value="16" min="1" step="1" oninput="calculateStorageOnly()">
-                    </td>
-                    <td>
-                        <span class="calc-output stRawOutput">61.44 TB</span>
-                    </td>
-                    <td>
-                        <span class="calc-output stUsableOutput">25.50 TB</span>
-                    </td>
-                    <td>
-                        <button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')">×</button>
-                    </td>
+                    <td><input type="number" class="stDiskSize" value="3.84" min="0.1" step="0.01" oninput="calculateStorageOnly()"></td>
+                    <td><input type="number" class="stDiskQty" value="16" min="1" step="1" oninput="calculateStorageOnly()"></td>
+                    <td><span class="calc-output stRawOutput">61.44 TB</span></td>
+                    <td><span class="calc-output stUsableOutput">25.50 TB</span></td>
+                    <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')">×</button></td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- HYBRID SSD CACHE RECOMMENDATION DISPLAY -->
         <div id="hybridCacheBox" class="cache-recommend-box" style="display: none;">
             <strong>SSD Cache Recommendation Per Node:</strong>
             <div id="cacheDetailText" style="margin-top: 4px;">Calculating recommended cache...</div>
@@ -888,36 +524,14 @@
 
         <div class="storage-summary">
             <h3>Storage and Physical Alignment Summary</h3>
-            <div class="result-item">
-                <span>Architecture Mode:</span>
-                <span class="value" id="outArchMode">Full Flash</span>
-            </div>
-            <div class="result-item">
-                <span>Configured Cluster Nodes:</span>
-                <span class="value" id="outStNodes">3 Nodes</span>
-            </div>
-            <div class="result-item">
-                <span>Total Cluster Disk Slots Available:</span>
-                <span class="value" id="outTotalSlotCapacity">36 Slots</span>
-            </div>
-            <div class="result-item">
-                <span>Total Storage Disks Selected:</span>
-                <span class="value" id="outTotalDisks">16 Disks</span>
-            </div>
-            <div class="result-item">
-                <span>Replica Policy:</span>
-                <span class="value" id="outPolicyText">2 Copies Policy</span>
-            </div>
-            <div class="result-item">
-                <span>Total Raw Capacity:</span>
-                <span class="value" id="outTotalRawStorage">61.44 TB</span>
-            </div>
-            <div class="result-item">
-                <span>Total Usable Capacity:</span>
-                <span class="value" id="outTotalUsableStorage" style="color: var(--storage-theme); font-size: 1.1rem;">25.50 TB</span>
-            </div>
+            <div class="result-item"><span>Architecture Mode:</span><span class="value" id="outArchMode">Full Flash</span></div>
+            <div class="result-item"><span>Configured Cluster Nodes:</span><span class="value" id="outStNodes">3 Nodes</span></div>
+            <div class="result-item"><span>Total Cluster Disk Slots Available:</span><span class="value" id="outTotalSlotCapacity">36 Slots</span></div>
+            <div class="result-item"><span>Total Storage Disks Selected:</span><span class="value" id="outTotalDisks">16 Disks</span></div>
+            <div class="result-item"><span>Replica Policy:</span><span class="value" id="outPolicyText">2 Copies Policy</span></div>
+            <div class="result-item"><span>Total Raw Capacity:</span><span class="value" id="outTotalRawStorage">61.44 TB</span></div>
+            <div class="result-item"><span>Total Usable Capacity:</span><span class="value" id="outTotalUsableStorage" style="color: var(--storage-theme); font-size: 1.1rem;">25.50 TB</span></div>
 
-            <!-- CROSS-SECTION ADVICE BLOCK -->
             <div id="storageAdviceBox" class="storage-advice-alert advice-ok">
                 Storage physical slots are aligned across 3 nodes at 5.3 drives per node. Fits perfectly with compute requirement.
             </div>
@@ -929,102 +543,90 @@
             • <span id="formulaText">Usable Capacity = Raw Size divided by 2 × 83%</span>
         </div>
     </div>
-
 </div>
 
-<!-- MIDDLE PANEL: TOPOLOGY DIAGRAM PLACED DIRECTLY ABOVE LICENSING -->
+<!-- ARCHITECTURE DRAWING SECTION: DYNAMIC ARCHITECTURE TOPOLOGY -->
 <div class="topology-wrapper">
-    <h2>Sangfor HCI Cluster Infrastructure Architecture Topology</h2>
-    <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
-        Dynamic architectural diagram reflecting physical network switches and calculated Sangfor HCI server nodes with redundant networking links.
-    </p>
-
-    <div class="topology-container" id="topoContainer">
-        <svg class="svg-connections" id="svgLinesLayer"></svg>
-
-        <!-- TOP LAYER: 2 SWITCHES -->
-        <div class="topo-switches-layer">
-            <div class="switch-box" id="switchA">
-                <div class="switch-title">ToR Switch A</div>
-                <div class="switch-desc">10G or 25G Redundant Switch</div>
-            </div>
-            <div class="switch-box" id="switchB">
-                <div class="switch-title">ToR Switch B</div>
-                <div class="switch-desc">10G or 25G Redundant Switch</div>
-            </div>
-        </div>
-
-        <!-- BOTTOM LAYER: SANGFOR HCI NODES -->
-        <div class="topo-nodes-layer" id="topoNodesContainer">
-            <!-- Dynamic Node Elements Injected Here -->
+    <div class="topology-card">
+        <h2>System Architecture &amp; Network Topology Diagram</h2>
+        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
+            Visual schematic showing cluster server nodes connected to dual top-of-rack (ToR) redundant network switches.
+        </p>
+        <div class="topology-svg-container" id="topologySvgContainer">
+            <!-- Dynamic SVG will be rendered here -->
         </div>
     </div>
 </div>
 
-<!-- BOTTOM PANEL: SANGFOR SOFTWARE LICENSING & SUBSCRIPTION -->
+<!-- BOTTOM PANEL: SOFTWARE LICENSING & SUBSCRIPTION -->
 <div class="license-wrapper">
-    <h2>Sangfor Software License and Subscription Sizer</h2>
+    <div class="license-card-inner">
+        <h2>Sangfor Software License and Subscription Sizer</h2>
 
-    <div class="license-section-title">Deployment and License Configuration</div>
+        <div class="license-section-title">Deployment and License Configuration</div>
 
-    <div class="grid">
-        <div class="form-group">
-            <label for="licDeploymentType" style="color: var(--license-theme);">Deployment Option:</label>
-            <select id="licDeploymentType" onchange="calculateLicensing()">
-                <option value="hypervisor">Hypervisor only</option>
-                <option value="hci" selected>Full HCI</option>
-                <option value="private_cloud">Full Private Cloud Stack</option>
-            </select>
+        <div class="grid">
+            <div class="form-group">
+                <label for="licDeploymentType" style="color: var(--license-theme);">Deployment Option:</label>
+                <select id="licDeploymentType" onchange="calculateLicensing()">
+                    <option value="hypervisor">Hypervisor only</option>
+                    <option value="hci" selected>Full HCI</option>
+                    <option value="private_cloud">Full Private Cloud Stack</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="licSubscriptionTerm" style="color: var(--license-theme);">Subscription and Support Term:</label>
+                <select id="licSubscriptionTerm" onchange="calculateLicensing()">
+                    <option value="1Y">1 Year Subscription and Support</option>
+                    <option value="3Y" selected>3 Years Subscription and Support</option>
+                    <option value="5Y">5 Years Subscription and Support</option>
+                </select>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="licSubscriptionTerm" style="color: var(--license-theme);">Subscription and Support Term:</label>
-            <select id="licSubscriptionTerm" onchange="calculateLicensing()">
-                <option value="1Y">1 Year Subscription and Support</option>
-                <option value="3Y" selected>3 Years Subscription and Support</option>
-                <option value="5Y">5 Years Subscription and Support</option>
-            </select>
+        <div class="license-summary-card">
+            <h3>Recommended License Bundle Breakdown</h3>
+            <div class="result-item">
+                <span>Selected Deployment Option:</span>
+                <span class="license-badge" id="outLicDeploymentName">Full HCI</span>
+            </div>
+            <div class="result-item" style="margin-top: 10px;">
+                <span>License Metric:</span>
+                <span class="value" style="color: var(--license-theme);">Based on Number of CPU Sockets</span>
+            </div>
+            <div class="result-item">
+                <span>Total CPU Sockets in Cluster:</span>
+                <span class="value" id="outTotalCPUSockets">6 Sockets</span>
+            </div>
+            <div class="result-item" style="font-size: 1.1rem; color: var(--license-theme); font-weight: bold; margin-top: 10px; border-top: 1px dashed #dcd0f0; padding-top: 10px;">
+                <span>Calculated License SKU:</span>
+                <span class="value" id="outLicQuantity">6 x Bundle-Advanced-3Y</span>
+            </div>
+            <div class="result-item">
+                <span>Subscription and Support Duration:</span>
+                <span class="value" id="outLicSupportTerm">3 Years</span>
+            </div>
         </div>
-    </div>
 
-    <div class="license-summary-card">
-        <h3>Recommended License Bundle Breakdown</h3>
-        <div class="result-item">
-            <span>Selected Deployment Option:</span>
-            <span class="license-badge" id="outLicDeploymentName">Full HCI</span>
+        <div class="note-box" style="margin-top: 15px;">
+            <strong>License Bundle Definitions:</strong><br>
+            • Hypervisor only maps to Standard Bundle<br>
+            • Full HCI maps to Advanced Bundle<br>
+            • Full Private Cloud Stack maps to Enterprise Bundle
         </div>
-        <div class="result-item" style="margin-top: 10px;">
-            <span>License Metric:</span>
-            <span class="value" style="color: var(--license-theme);">Based on Number of CPU Sockets</span>
-        </div>
-        <div class="result-item">
-            <span>Total CPU Sockets in Cluster:</span>
-            <span class="value" id="outTotalCPUSockets">6 Sockets</span>
-        </div>
-        <div class="result-item" style="font-size: 1.1rem; color: var(--license-theme); font-weight: bold; margin-top: 10px; border-top: 1px dashed #dcd0f0; padding-top: 10px;">
-            <span>Calculated License SKU:</span>
-            <span class="value" id="outLicQuantity">6 x Bundle-Advanced-3Y</span>
-        </div>
-        <div class="result-item">
-            <span>Subscription and Support Duration:</span>
-            <span class="value" id="outLicSupportTerm">3 Years</span>
-        </div>
-    </div>
-
-    <div class="note-box" style="margin-top: 15px;">
-        <strong>License Bundle Definitions:</strong><br>
-        • Hypervisor only maps to Standard Bundle<br>
-        • Full HCI maps to Advanced Bundle<br>
-        • Full Private Cloud Stack maps to Enterprise Bundle
     </div>
 </div>
+
+<footer>
+    <span>Generated by Sangfor HCI Architecture Sizing Tool · Designed by Vignesh</span>
+</footer>
 
 <script>
     let globalTargetUsableStorageTB = 23.44;
     let globalComputeNodesCount = 3;
     let globalSocketsPerNode = 2;
     let storageRowCounter = 1;
-
     let groupCounter = 1;
     let globalCalculatedCores = 0;
     let globalCalculatedRAM = 0;
@@ -1038,8 +640,12 @@
         '2cpu_32core': { name: '2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32 }
     };
 
+    const HDD_SIZES_TB = [16, 12, 10, 8];
+    const SSD_SIZES_TB = [7.68, 3.84, 1.92, 0.96];
+
     function toggleInputMode() {
-        const mode = document.querySelector('input[name="inputMode"]:checked').value;
+        const modeEl = document.querySelector('input[name="inputMode"]:checked');
+        const mode = modeEl ? modeEl.value : 'groups';
         const groupsContainer = document.getElementById('vmGroupsContainer');
         const directContainer = document.getElementById('directInputContainer');
         const btnAdd = document.getElementById('btnAddVmGroup');
@@ -1056,65 +662,6 @@
         calculateSizing();
     }
 
-    function renderTopologyDiagram(nodeCount) {
-        const container = document.getElementById('topoNodesContainer');
-        const svg = document.getElementById('svgLinesLayer');
-        container.innerHTML = '';
-        svg.innerHTML = '';
-
-        const currentSpec = getSelectedHardwareConfig();
-
-        for (let i = 1; i <= nodeCount; i++) {
-            const nodeDiv = document.createElement('div');
-            nodeDiv.className = 'node-box';
-            nodeDiv.id = `topoNode_${i}`;
-            nodeDiv.innerHTML = `
-                <div class="node-icon">SANGFOR HCI</div>
-                <div class="node-title">Node ${i}</div>
-                <div class="node-detail">${currentSpec.cpus} Socket x ${currentSpec.coresPerCpu} Cores</div>
-                <div class="node-detail" style="color:#0056b3; font-weight:600;">aSAN Storage Node</div>
-            `;
-            container.appendChild(nodeDiv);
-        }
-
-        setTimeout(() => { drawTopologyLines(nodeCount); }, 50);
-    }
-
-    function drawTopologyLines(nodeCount) {
-        const svg = document.getElementById('svgLinesLayer');
-        const topoBox = document.getElementById('topoContainer').getBoundingClientRect();
-        
-        const swA = document.getElementById('switchA').getBoundingClientRect();
-        const swB = document.getElementById('switchB').getBoundingClientRect();
-
-        const swAX = swA.left + (swA.width / 2) - topoBox.left;
-        const swAY = swA.bottom - topoBox.top;
-        
-        const swBX = swB.left + (swB.width / 2) - topoBox.left;
-        const swBY = swB.bottom - topoBox.top;
-
-        let svgHtml = '';
-
-        for (let i = 1; i <= nodeCount; i++) {
-            const nodeElem = document.getElementById(`topoNode_${i}`);
-            if (!nodeElem) continue;
-            const nBox = nodeElem.getBoundingClientRect();
-
-            const nodeX1 = nBox.left + (nBox.width * 0.35) - topoBox.left;
-            const nodeX2 = nBox.left + (nBox.width * 0.65) - topoBox.left;
-            const nodeY = nBox.top - topoBox.top;
-
-            svgHtml += `<line x1="${nodeX1}" y1="${nodeY}" x2="${swAX}" y2="${swAY}" stroke="#0056b3" stroke-width="2" stroke-dasharray="4,3" />`;
-            svgHtml += `<line x1="${nodeX2}" y1="${nodeY}" x2="${swBX}" y2="${swBY}" stroke="#00d2d3" stroke-width="2" stroke-dasharray="4,3" />`;
-        }
-
-        svg.innerHTML = svgHtml;
-    }
-
-    window.addEventListener('resize', () => {
-        drawTopologyLines(globalComputeNodesCount);
-    });
-
     function addVmGroup() {
         groupCounter++;
         const container = document.getElementById('vmGroupsContainer');
@@ -1130,7 +677,7 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Group Name</label>
-                    <input type="text" class="groupName" value="Workload ${groupCounter}">
+                    <input type="text" class="groupName" value="Workload ${groupCounter}" oninput="calculateSizing()">
                 </div>
                 <div class="form-group">
                     <label>Number of VMs</label>
@@ -1178,39 +725,32 @@
         const groups = document.querySelectorAll('.vm-group-card');
         groups.forEach((group) => {
             const btn = group.querySelector('.btn-remove');
-            btn.style.display = groups.length === 1 ? 'none' : 'inline-block';
+            if (btn) btn.style.display = groups.length === 1 ? 'none' : 'inline-block';
         });
     }
 
     function calculateSizing() {
-        const mode = document.querySelector('input[name="inputMode"]:checked').value;
+        const modeEl = document.querySelector('input[name="inputMode"]:checked');
+        const mode = modeEl ? modeEl.value : 'groups';
 
-        let totalVMs = 0;
-        let totalVCPUs = 0;
-        let physicalCoresNeeded = 0;
-        let totalDRAMGB = 0;
-        let totalNVMeRAMGB = 0;
-        let rawVMStorageGB = 0;
+        let totalVMs = 0, totalVCPUs = 0, physicalCoresNeeded = 0;
+        let totalDRAMGB = 0, totalNVMeRAMGB = 0, rawVMStorageGB = 0;
 
         if (mode === 'groups') {
             const groupCards = document.querySelectorAll('.vm-group-card');
             groupCards.forEach((card) => {
-                const count = parseFloat(card.querySelector('.vmCount').value) || 0;
-                const vcpu = parseFloat(card.querySelector('.vCPU').value) || 0;
-                const ratio = parseFloat(card.querySelector('.vcpuRatio').value) || 1;
-                const ram = parseFloat(card.querySelector('.ram').value) || 0;
-                const vmStorage = parseFloat(card.querySelector('.vmStorageGB').value) || 0;
-                const isNoTiering = card.querySelector('.isNoTiering').checked;
+                const count = parseFloat(card.querySelector('.vmCount')?.value) || 0;
+                const vcpu = parseFloat(card.querySelector('.vCPU')?.value) || 0;
+                const ratio = parseFloat(card.querySelector('.vcpuRatio')?.value) || 1;
+                const ram = parseFloat(card.querySelector('.ram')?.value) || 0;
+                const vmStorage = parseFloat(card.querySelector('.vmStorageGB')?.value) || 0;
+                const isNoTiering = card.querySelector('.isNoTiering')?.checked || false;
 
                 totalVMs += count;
                 const groupVCPUs = count * vcpu;
                 totalVCPUs += groupVCPUs;
                 
-                if (ratio > 0) {
-                    physicalCoresNeeded += Math.ceil(groupVCPUs / ratio);
-                } else {
-                    physicalCoresNeeded += groupVCPUs;
-                }
+                physicalCoresNeeded += (ratio > 0) ? Math.ceil(groupVCPUs / ratio) : groupVCPUs;
 
                 const groupTotalRAM = count * ram;
                 rawVMStorageGB += count * vmStorage;
@@ -1223,18 +763,14 @@
                 }
             });
         } else {
-            totalVMs = parseFloat(document.getElementById('directVMCount').value) || 0;
-            totalVCPUs = parseFloat(document.getElementById('directTotalVCPU').value) || 0;
-            const ratio = parseFloat(document.getElementById('directVCPURatio').value) || 1;
-            const directRAM = parseFloat(document.getElementById('directTotalRAMGB').value) || 0;
-            rawVMStorageGB = parseFloat(document.getElementById('directTotalStorageGB').value) || 0;
-            const isNoTiering = document.getElementById('directNoTiering').checked;
+            totalVMs = parseFloat(document.getElementById('directVMCount')?.value) || 0;
+            totalVCPUs = parseFloat(document.getElementById('directTotalVCPU')?.value) || 0;
+            const ratio = parseFloat(document.getElementById('directVCPURatio')?.value) || 1;
+            const directRAM = parseFloat(document.getElementById('directTotalRAMGB')?.value) || 0;
+            rawVMStorageGB = parseFloat(document.getElementById('directTotalStorageGB')?.value) || 0;
+            const isNoTiering = document.getElementById('directNoTiering')?.checked || false;
 
-            if (ratio > 0) {
-                physicalCoresNeeded = Math.ceil(totalVCPUs / ratio);
-            } else {
-                physicalCoresNeeded = totalVCPUs;
-            }
+            physicalCoresNeeded = (ratio > 0) ? Math.ceil(totalVCPUs / ratio) : totalVCPUs;
 
             if (!isNoTiering) {
                 totalDRAMGB = directRAM * 0.50;
@@ -1247,7 +783,6 @@
         const recDRAM = Math.ceil(totalDRAMGB * 1.20);
         const recNVMeRAM = Math.ceil(totalNVMeRAMGB * 1.20);
         const totalRAMNeeded = recDRAM + recNVMeRAM;
-
         const totalVMStorageTBWithOverhead = (rawVMStorageGB * 1.20) / 1024;
         globalTargetUsableStorageTB = totalVMStorageTBWithOverhead;
 
@@ -1293,7 +828,7 @@
                 dimmSlots: sockets === 1 ? 16 : 32
             };
         } else {
-            return TEMPLATES[selectedKey];
+            return TEMPLATES[selectedKey] || TEMPLATES['2cpu_32core'];
         }
     }
 
@@ -1341,6 +876,50 @@
         };
     }
 
+    function autoCalculateDisks(nodesCount, targetUsableTB, arch, isNvmeTieringActive) {
+        const rawNeededTB = (targetUsableTB * 2) / 0.83;
+        const rawNeededPerNodeTB = rawNeededTB / nodesCount;
+        const maxSlotsPerNode = 12;
+        const netDataSlotsPerNode = isNvmeTieringActive ? (maxSlotsPerNode - 1) : maxSlotsPerNode;
+
+        let chosenSize = 0, disksPerNode = 0, totalQty = 0, cachePerNodeTB = 0;
+        const candidateSizes = (arch === 'hybrid') ? HDD_SIZES_TB : SSD_SIZES_TB;
+
+        for (let sz of candidateSizes) {
+            let nodeQty = Math.ceil(rawNeededPerNodeTB / sz);
+            if (nodeQty < 2) nodeQty = 2; // Enforce minimum 2 drives per node
+            
+            if (nodeQty <= netDataSlotsPerNode) {
+                chosenSize = sz;
+                disksPerNode = nodeQty;
+                totalQty = disksPerNode * nodesCount;
+                break;
+            }
+        }
+
+        if (chosenSize === 0) {
+            chosenSize = candidateSizes[candidateSizes.length - 1];
+            disksPerNode = Math.ceil(rawNeededPerNodeTB / chosenSize);
+            totalQty = disksPerNode * nodesCount;
+        }
+
+        if (arch === 'hybrid') {
+            const rawPerNodeTB = chosenSize * disksPerNode;
+            const cache10Percent = rawPerNodeTB * 0.10;
+            if (cache10Percent <= 1.92) cachePerNodeTB = 1.92;
+            else if (cache10Percent <= 3.84) cachePerNodeTB = 3.84;
+            else cachePerNodeTB = 7.68;
+        }
+
+        return {
+            diskSize: chosenSize,
+            totalQty: totalQty,
+            disksPerNode: disksPerNode,
+            cachePerNodeTB: cachePerNodeTB,
+            netDataSlotsPerNode: netDataSlotsPerNode
+        };
+    }
+
     function recalculateHardware() {
         const tmpl = getSelectedHardwareConfig();
         const evalRes = evaluateHardware(tmpl);
@@ -1371,53 +950,79 @@
         }
 
         const tieringRow = document.getElementById('tieringDiskNodeRow');
-
         if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / nodes);
-            
             document.getElementById('outPerNodeTieringDisk').innerText = 
-                `1 x ${nvmeSizeTB} TB NVMe SSD provides additional ${tieredRamPerNode} GB from this Disk`;
+                `1 x ${nvmeSizeTB} TB NVMe SSD consumes 1 slot per server provides additional ${tieredRamPerNode} GB from this Disk`;
             tieringRow.style.display = 'flex';
         } else {
             tieringRow.style.display = 'none';
         }
 
-        const nodeNoteElement = document.getElementById('nodeNote');
-        if (nodes === 2) {
-            nodeNoteElement.innerHTML = "<strong>2 Node Cluster Deployment Notice:</strong> Requires an external Witness Node.";
-        } else {
-            nodeNoteElement.innerHTML = "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.";
+        const selectedArch = document.getElementById('workloadArch').value;
+        const autoStorage = autoCalculateDisks(nodes, globalTargetUsableStorageTB, selectedArch, useTiering);
+        const diskTypeLabel = selectedArch === 'hybrid' ? 'HDD' : 'SSD';
+        let clusterRecText = `${autoStorage.totalQty} x ${autoStorage.diskSize} TB ${diskTypeLabel} across cluster`;
+        
+        if (selectedArch === 'hybrid') {
+            clusterRecText += ` PLUS 1 x ${autoStorage.cachePerNodeTB} TB SSD Cache per server`;
         }
+        
+        document.getElementById('outAutoDiskClusterRec').innerText = clusterRecText;
+        
+        let nodeAllocationText = `${autoStorage.disksPerNode} ${diskTypeLabel}s per Server across ${nodes} Nodes`;
+        if (useTiering) {
+            nodeAllocationText += ` (Net ${autoStorage.netDataSlotsPerNode} data slots per server after NVMe tiering)`;
+        }
+        document.getElementById('outAutoDiskPerNodeRec').innerText = nodeAllocationText;
+
+        const cacheRow = document.getElementById('outAutoCacheRow');
+        if (selectedArch === 'hybrid') {
+            cacheRow.style.display = 'flex';
+            document.getElementById('outAutoCacheRec').innerText = `1 x ${autoStorage.cachePerNodeTB} TB SSD Cache per server`;
+        } else {
+            cacheRow.style.display = 'none';
+        }
+
+        syncAutoToManualStorage(autoStorage.diskSize, autoStorage.totalQty, selectedArch);
+
+        const nodeNoteElement = document.getElementById('nodeNote');
+        nodeNoteElement.innerHTML = (nodes === 2) 
+            ? "<strong>2 Node Cluster Deployment Notice:</strong> Requires an external Witness Node." 
+            : "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.";
 
         renderTopologyDiagram(nodes);
         calculateStorageOnly();
         calculateLicensing();
     }
 
-    function onStorageArchChange() {
-        const arch = document.getElementById('stArchitecture').value;
-        const labelElem = document.getElementById('thDiskTypeLabel');
-        const rows = document.querySelectorAll('#storageRowsContainer tr');
+    function syncAutoToManualStorage(diskSize, diskQty, arch) {
+        document.getElementById('thDiskTypeLabel').innerText = arch === 'hybrid' ? 'HDD Disk Size in TB' : 'SSD Disk Size in TB';
+        const container = document.getElementById('storageRowsContainer');
+        container.innerHTML = '';
+        storageRowCounter = 1;
 
-        if (arch === 'hybrid') {
-            labelElem.innerText = "HDD Disk Size in TB";
-            rows.forEach(r => {
-                const input = r.querySelector('.stDiskSize');
-                if (input.value == 1.92 || input.value == 3.84) {
-                    input.value = 4.0;
-                }
-            });
-        } else {
-            labelElem.innerText = "SSD Disk Size in TB";
-            rows.forEach(r => {
-                const input = r.querySelector('.stDiskSize');
-                if (input.value == 4.0 || input.value == 8.0) {
-                    input.value = 3.84;
-                }
-            });
-        }
-        calculateStorageOnly();
+        const tr = document.createElement('tr');
+        tr.id = 'stRow_1';
+        tr.innerHTML = `
+            <td><input type="number" class="stDiskSize" value="${diskSize}" min="0.1" step="0.01" oninput="calculateStorageOnly()"></td>
+            <td><input type="number" class="stDiskQty" value="${diskQty}" min="1" step="1" oninput="calculateStorageOnly()"></td>
+            <td><span class="calc-output stRawOutput">0.00 TB</span></td>
+            <td><span class="calc-output stUsableOutput">0.00 TB</span></td>
+            <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')">×</button></td>
+        `;
+        container.appendChild(tr);
+    }
+
+    function onWorkloadArchChange() {
+        document.getElementById('stArchitecture').value = document.getElementById('workloadArch').value;
+        calculateSizing();
+    }
+
+    function onStorageArchChange() {
+        document.getElementById('workloadArch').value = document.getElementById('stArchitecture').value;
+        calculateSizing();
     }
 
     function addStorageRow() {
@@ -1428,24 +1033,14 @@
         tr.id = rowId;
 
         const isHybrid = document.getElementById('stArchitecture').value === 'hybrid';
-        const defaultDiskSize = isHybrid ? 4.0 : 3.84;
+        const defaultDiskSize = isHybrid ? 16.0 : 3.84;
 
         tr.innerHTML = `
-            <td>
-                <input type="number" class="stDiskSize" value="${defaultDiskSize}" min="0.1" step="0.01" oninput="calculateStorageOnly()">
-            </td>
-            <td>
-                <input type="number" class="stDiskQty" value="4" min="1" step="1" oninput="calculateStorageOnly()">
-            </td>
-            <td>
-                <span class="calc-output stRawOutput">0.00 TB</span>
-            </td>
-            <td>
-                <span class="calc-output stUsableOutput">0.00 TB</span>
-            </td>
-            <td>
-                <button type="button" class="btn-remove" onclick="removeStorageRow('${rowId}')">×</button>
-            </td>
+            <td><input type="number" class="stDiskSize" value="${defaultDiskSize}" min="0.1" step="0.01" oninput="calculateStorageOnly()"></td>
+            <td><input type="number" class="stDiskQty" value="6" min="1" step="1" oninput="calculateStorageOnly()"></td>
+            <td><span class="calc-output stRawOutput">0.00 TB</span></td>
+            <td><span class="calc-output stUsableOutput">0.00 TB</span></td>
+            <td><button type="button" class="btn-remove" onclick="removeStorageRow('${rowId}')">×</button></td>
         `;
 
         container.appendChild(tr);
@@ -1467,19 +1062,19 @@
         const copyPolicy = parseInt(document.getElementById('stCopyPolicy').value) || 2;
 
         const rows = document.querySelectorAll('#storageRowsContainer tr');
-        let totalQty = 0;
-        let totalRawTB = 0;
-        let totalUsableTB = 0;
+        let totalQty = 0, totalRawTB = 0, totalUsableTB = 0;
 
         rows.forEach(row => {
-            const diskSize = parseFloat(row.querySelector('.stDiskSize').value) || 0;
-            const diskQty = parseFloat(row.querySelector('.stDiskQty').value) || 0;
+            const diskSize = parseFloat(row.querySelector('.stDiskSize')?.value) || 0;
+            const diskQty = parseFloat(row.querySelector('.stDiskQty')?.value) || 0;
 
             const rawTB = diskSize * diskQty;
             const usableTB = (rawTB / copyPolicy) * 0.83;
 
-            row.querySelector('.stRawOutput').innerText = rawTB.toFixed(2) + " TB";
-            row.querySelector('.stUsableOutput').innerText = usableTB.toFixed(2) + " TB";
+            const rawOut = row.querySelector('.stRawOutput');
+            const usableOut = row.querySelector('.stUsableOutput');
+            if (rawOut) rawOut.innerText = rawTB.toFixed(2) + " TB";
+            if (usableOut) usableOut.innerText = usableTB.toFixed(2) + " TB";
 
             totalQty += diskQty;
             totalRawTB += rawTB;
@@ -1505,19 +1100,11 @@
             const cache10Percent = rawPerNodeTB * 0.10;
             const cache20Percent = rawPerNodeTB * 0.20;
 
-            let recommendedSSDSize = 1.92;
-            let qtySSD = 1;
-
-            if (cache10Percent <= 1.92) {
-                recommendedSSDSize = 1.92;
-            } else if (cache10Percent <= 3.84) {
-                recommendedSSDSize = 3.84;
-            } else if (cache10Percent <= 7.68) {
-                recommendedSSDSize = 7.68;
-            } else {
-                recommendedSSDSize = 7.68;
-                qtySSD = Math.ceil(cache10Percent / 7.68);
-            }
+            let recommendedSSDSize = 1.92, qtySSD = 1;
+            if (cache10Percent <= 1.92) recommendedSSDSize = 1.92;
+            else if (cache10Percent <= 3.84) recommendedSSDSize = 3.84;
+            else if (cache10Percent <= 7.68) recommendedSSDSize = 7.68;
+            else { recommendedSSDSize = 7.68; qtySSD = Math.ceil(cache10Percent / 7.68); }
 
             const currentRatio = rawPerNodeTB > 0 ? ((recommendedSSDSize * qtySSD) / rawPerNodeTB * 100).toFixed(1) : 0;
 
@@ -1571,22 +1158,113 @@
         }
     }
 
+    /* RENDER DYNAMIC SVG TOPOLOGY DIAGRAM */
+    function renderTopologyDiagram(nodesCount) {
+        const container = document.getElementById('topologySvgContainer');
+        const isTwoNode = nodesCount === 2;
+        const totalItems = isTwoNode ? 3 : nodesCount; // 2 Nodes + 1 Witness OR N Nodes
+        
+        const svgWidth = Math.max(750, totalItems * 180 + 100);
+        const svgHeight = 320;
+        
+        const sw1X = svgWidth / 2 - 160;
+        const sw2X = svgWidth / 2 + 160;
+        const swY = 50;
+        
+        let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="font-family: Segoe UI, sans-serif;">`;
+        
+        svgHtml += `
+            <defs>
+                <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+                </filter>
+                <linearGradient id="swGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#34495e"/>
+                    <stop offset="100%" stop-color="#1c2833"/>
+                </linearGradient>
+                <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0056b3"/>
+                    <stop offset="100%" stop-color="#003d80"/>
+                </linearGradient>
+                <linearGradient id="witnessGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#17a2b8"/>
+                    <stop offset="100%" stop-color="#117a8b"/>
+                </linearGradient>
+            </defs>
+        `;
+
+        const switches = [
+            { id: "SW1", label: "ToR Switch A", x: sw1X },
+            { id: "SW2", label: "ToR Switch B", x: sw2X }
+        ];
+
+        svgHtml += `<line x1="${sw1X + 70}" y1="${swY + 20}" x2="${sw2X - 70}" y2="${swY + 20}" stroke="#7f8c8d" stroke-width="3" stroke-dasharray="4,4"/>`;
+
+        switches.forEach(sw => {
+            svgHtml += `
+                <g filter="url(#shadow)">
+                    <rect x="${sw.x - 70}" y="${swY}" width="140" height="40" rx="4" fill="url(#swGrad)" stroke="#2c3e50" stroke-width="1.5"/>
+                    <text x="${sw.x}" y="${swY + 24}" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">${sw.label}</text>
+                </g>
+            `;
+        });
+
+        const spacing = svgWidth / (totalItems + 1);
+        const nodeY = 200;
+
+        for (let i = 0; i < totalItems; i++) {
+            const itemX = spacing * (i + 1);
+            const isWitness = isTwoNode && i === 2;
+
+            svgHtml += `<line x1="${itemX - 15}" y1="${nodeY}" x2="${sw1X}" y2="${swY + 40}" stroke="#28a745" stroke-width="1.5" stroke-opacity="0.7"/>`;
+            svgHtml += `<line x1="${itemX + 15}" y1="${nodeY}" x2="${sw2X}" y2="${swY + 40}" stroke="#0056b3" stroke-width="1.5" stroke-opacity="0.7"/>`;
+
+            if (isWitness) {
+                svgHtml += `
+                    <g filter="url(#shadow)">
+                        <rect x="${itemX - 60}" y="${nodeY}" width="120" height="50" rx="6" fill="url(#witnessGrad)" stroke="#0f6674" stroke-width="1.5"/>
+                        <text x="${itemX}" y="${nodeY + 22}" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Witness Node</text>
+                        <text x="${itemX}" y="${nodeY + 38}" fill="#e0f7fa" font-size="10" text-anchor="middle">Quorum Tie-Breaker</text>
+                    </g>
+                `;
+            } else {
+                svgHtml += `
+                    <g filter="url(#shadow)">
+                        <rect x="${itemX - 65}" y="${nodeY}" width="130" height="60" rx="6" fill="url(#nodeGrad)" stroke="#002b5c" stroke-width="1.5"/>
+                        <text x="${itemX}" y="${nodeY + 24}" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Node ${i + 1}</text>
+                        <text x="${itemX}" y="${nodeY + 42}" fill="#b3d7ff" font-size="10" text-anchor="middle">Sangfor HCI Host</text>
+                    </g>
+                `;
+            }
+        }
+
+        svgHtml += `
+            <g transform="translate(${svgWidth / 2 - 180}, ${svgHeight - 25})">
+                <line x1="0" y1="10" x2="30" y2="10" stroke="#28a745" stroke-width="2"/>
+                <text x="35" y="14" font-size="11" fill="#555">Active Link A</text>
+                <line x1="120" y1="10" x2="150" y2="10" stroke="#0056b3" stroke-width="2"/>
+                <text x="155" y="14" font-size="11" fill="#555">Active Link B</text>
+                <line x1="240" y1="10" x2="270" y2="10" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="3,3"/>
+                <text x="275" y="14" font-size="11" fill="#555">Inter-Switch Link</text>
+            </g>
+        `;
+
+        svgHtml += `</svg>`;
+        container.innerHTML = svgHtml;
+    }
+
     function calculateLicensing() {
         const deployment = document.getElementById('licDeploymentType').value;
         const termCode = document.getElementById('licSubscriptionTerm').value;
 
-        let bundleType = "Standard";
-        let deploymentLabel = "Hypervisor only";
+        let bundleType = "Standard", deploymentLabel = "Hypervisor only";
 
         if (deployment === 'hypervisor') {
-            bundleType = "Standard";
-            deploymentLabel = "Hypervisor only";
+            bundleType = "Standard"; deploymentLabel = "Hypervisor only";
         } else if (deployment === 'hci') {
-            bundleType = "Advanced";
-            deploymentLabel = "Full HCI";
+            bundleType = "Advanced"; deploymentLabel = "Full HCI";
         } else if (deployment === 'private_cloud') {
-            bundleType = "Enterprise";
-            deploymentLabel = "Full Private Cloud Stack";
+            bundleType = "Enterprise"; deploymentLabel = "Full Private Cloud Stack";
         }
 
         const totalSockets = globalComputeNodesCount * globalSocketsPerNode;
