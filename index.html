@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sangfor HCI Architecture & Sizing Tool</title>
+    <!-- SheetJS for RVTools Excel parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #0056b3;
@@ -47,6 +51,33 @@
             letter-spacing: 0.5px;
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-export-pdf {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-export-pdf:hover {
+            background-color: #e64a19;
+            transform: translateY(-1px);
+        }
+
         .designer-badge {
             display: flex;
             align-items: center;
@@ -57,13 +88,23 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .designer-avatar {
+        .designer-avatar-container {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            object-fit: cover;
+            background: #0056b3;
             border: 2px solid #ffffff;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .designer-avatar-container svg {
+            width: 26px;
+            height: 26px;
         }
 
         .designer-text {
@@ -82,6 +123,37 @@
             font-size: 0.95rem;
             font-weight: 700;
             color: #ffffff;
+        }
+
+        /* RVTOOLS UPLOADER BOX */
+        .upload-box {
+            background: #eef7ff;
+            border: 2px dashed #0056b3;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .upload-box:hover {
+            background: #e3f2fd;
+        }
+
+        .upload-box label {
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #0056b3;
+            font-weight: bold;
+            display: block;
+        }
+
+        .upload-status {
+            font-size: 0.8rem;
+            color: #28a745;
+            margin-top: 6px;
+            font-weight: 600;
         }
 
         /* MAIN TWO PANEL LAYOUT */
@@ -180,7 +252,7 @@
         .btn-calc { width: 100%; background-color: var(--primary); color: white; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
         .btn-calc:hover { background-color: #003d80; }
 
-        .results { margin-top: 25px; background-color: #e9f3ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 0 4px 4px 0; }
+        .results { background-color: #e9f3ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 0 4px 4px 0; margin-top: 15px; }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
         .result-item span.value { font-weight: bold; }
         .recommendation-badge { background-color: #28a745; color: white; padding: 3px 8px; font-size: 0.75rem; border-radius: 12px; font-weight: bold; text-transform: uppercase; }
@@ -202,7 +274,7 @@
         .storage-table td { padding: 8px 4px; border-bottom: 1px solid #e0e0e0; }
         .storage-table input { width: 90%; }
         .calc-output { background-color: #e6f2f2; padding: 8px; border-radius: 4px; font-weight: bold; color: var(--storage-theme); font-size: 0.9rem; display: block; }
-        .storage-summary { margin-top: 20px; background: #e6f2f2; border-left: 4px solid var(--storage-theme); padding: 15px; border-radius: 0 4px 4px 0; }
+        .storage-summary { background: #e6f2f2; border-left: 4px solid var(--storage-theme); padding: 15px; border-radius: 0 4px 4px 0; margin-top: 20px; }
         .storage-summary h3 { color: var(--storage-theme); margin-bottom: 10px; }
         .policy-select-box { background: #f0f7f7; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cce5e5; }
         .storage-advice-alert { margin-top: 10px; padding: 10px 12px; border-radius: 4px; font-size: 0.85rem; line-height: 1.4; font-weight: 600; }
@@ -236,391 +308,416 @@
 </head>
 <body>
 
-<!-- HEADER BANNER -->
-<header class="app-header">
-    <div class="header-title-box">
-        <h1>Sangfor HCI Architecture & Sizing Tool</h1>
-    </div>
-    <div class="designer-badge">
-        <img src="MyPic.jpg" alt="Vignesh" class="designer-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Vignesh&background=0D8ABC&color=fff&size=128';">
-        <div class="designer-text">
-            <span class="designer-label">Designed By</span>
-            <span class="designer-name">Vignesh</span>
+<div id="exportPdfArea">
+    <!-- HEADER BANNER -->
+    <header class="app-header">
+        <div class="header-title-box">
+            <h1>Sangfor HCI Architecture & Sizing Tool</h1>
         </div>
-    </div>
-</header>
-
-<div class="main-wrapper">
-    <!-- LEFT PANEL: COMPUTE SIZING CALCULATOR -->
-    <div class="left-panel">
-        <h2>Sangfor HCI Sizer - Compute</h2>
-        
-        <form id="sizerForm">
-            <div class="section-title">
-                <span>1. Workload Requirements</span>
-                <button type="button" class="btn-add" id="btnAddVmGroup" onclick="addVmGroup()">+ Add VM Group</button>
-            </div>
-
-            <div class="mode-toggle-box">
-                <label>
-                    <input type="radio" name="inputMode" value="groups" checked onchange="toggleInputMode()">
-                    Per-VM Breakdown (Groups)
-                </label>
-                <label>
-                    <input type="radio" name="inputMode" value="direct" onchange="toggleInputMode()">
-                    OR Direct Aggregated Totals
-                </label>
-            </div>
-
-            <div class="form-group" style="background: #f0f7f7; padding: 12px; border-radius: 6px; border: 1px solid #cce5e5; margin-bottom: 15px;">
-                <label for="workloadArch" style="color: var(--storage-theme); font-weight: bold;">Required Storage Architecture:</label>
-                <select id="workloadArch" onchange="onWorkloadArchChange()">
-                    <option value="flash" selected>Full Flash All SSD</option>
-                    <option value="hybrid">Hybrid HDD plus SSD Cache</option>
-                </select>
-            </div>
-
-            <div id="vmGroupsContainer">
-                <div class="vm-group-card" id="vmGroup_1">
-                    <div class="vm-group-header">
-                        <span class="vm-group-title">VM Group 1</span>
-                        <button type="button" class="btn-remove" onclick="removeVmGroup(1)" style="display:none;">Remove</button>
-                    </div>
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>Group Name</label>
-                            <input type="text" class="groupName" value="General Workload" oninput="calculateSizing()">
-                        </div>
-                        <div class="form-group">
-                            <label>Number of VMs</label>
-                            <input type="number" class="vmCount" value="100" min="1" required oninput="calculateSizing()">
-                        </div>
-                        <div class="form-group">
-                            <label>vCPUs per VM</label>
-                            <input type="number" class="vCPU" value="4" min="1" required oninput="calculateSizing()">
-                        </div>
-                        <div class="form-group">
-                            <label>vCPU:pCPU Ratio</label>
-                            <div class="ratio-input-wrapper">
-                                <span class="ratio-prefix">1 :</span>
-                                <input type="number" class="vcpuRatio" value="3" min="0.1" step="0.1" required style="width: 100%;" oninput="calculateSizing()">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>RAM per VM in GB</label>
-                            <input type="number" class="ram" value="16" min="1" required oninput="calculateSizing()">
-                        </div>
-                        <div class="form-group">
-                            <label style="color: var(--storage-theme);">Storage per VM in GB</label>
-                            <input type="number" class="vmStorageGB" value="200" min="1" required oninput="calculateSizing()">
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" class="isNoTiering" id="noTier_1" onchange="calculateSizing()">
-                            <label for="noTier_1">No Tiering</label>
-                        </div>
-                    </div>
+        <div class="header-actions">
+            <button type="button" class="btn-export-pdf" onclick="exportToPDF()" data-html2canvas-ignore="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export PDF Report
+            </button>
+            <div class="designer-badge">
+                <div class="designer-avatar-container">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#ffffff"/>
+                        <path d="M2 17L12 22L22 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="designer-text">
+                    <span class="designer-label">Designed By</span>
+                    <span class="designer-name">Vignesh</span>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <div id="directInputContainer" class="vm-group-card" style="display: none; border-color: var(--primary);">
-                <div class="vm-group-header">
-                    <span class="vm-group-title">Direct Workload Totals</span>
-                </div>
-                <div class="grid">
-                    <div class="form-group">
-                        <label for="directVMCount">Total Estimated VMs</label>
-                        <input type="number" id="directVMCount" value="100" min="1" oninput="calculateSizing()">
-                    </div>
-                    <div class="form-group">
-                        <label for="directTotalVCPU">Total vCPUs Requested</label>
-                        <input type="number" id="directTotalVCPU" value="400" min="1" oninput="calculateSizing()">
-                    </div>
-                    <div class="form-group">
-                        <label for="directVCPURatio">vCPU:pCPU Ratio</label>
-                        <div class="ratio-input-wrapper">
-                            <span class="ratio-prefix">1 :</span>
-                            <input type="number" id="directVCPURatio" value="3" min="0.1" step="0.1" style="width: 100%;" oninput="calculateSizing()">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="directTotalRAMGB">Total Memory (RAM) in GB</label>
-                        <input type="number" id="directTotalRAMGB" value="1600" min="1" oninput="calculateSizing()">
-                    </div>
-                    <div class="form-group">
-                        <label for="directTotalStorageGB" style="color: var(--storage-theme);">Total VM Storage in GB</label>
-                        <input type="number" id="directTotalStorageGB" value="20000" min="1" oninput="calculateSizing()">
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="directNoTiering" onchange="calculateSizing()">
-                        <label for="directNoTiering">No Tiering</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-title">2. Memory Architecture and Tiering</div>
-            <div class="grid">
-                <div class="form-group" id="nvmeSizeGroup">
-                    <label for="nvmeSizeTB">Tiering NVMe Disk Size in TB</label>
-                    <input type="number" id="nvmeSizeTB" value="1.92" min="0.96" step="0.01" oninput="calculateSizing()">
-                </div>
-            </div>
-
-            <button type="button" class="btn-calc" onclick="calculateSizing()">Calculate Compute Requirements</button>
-
-            <div id="hardwareSection" style="display: block;">
+    <div class="main-wrapper">
+        <!-- LEFT PANEL: COMPUTE SIZING CALCULATOR -->
+        <div class="left-panel">
+            <h2>Sangfor HCI Sizer - Compute</h2>
+            
+            <form id="sizerForm">
                 <div class="section-title">
-                    <span>3. Recommended Server Hardware</span>
-                    <span id="bestTag" class="recommendation-badge">Optimal Pick</span>
+                    <span>1. Workload Requirements</span>
+                    <button type="button" class="btn-add" id="btnAddVmGroup" onclick="addVmGroup()" data-html2canvas-ignore="true">+ Add VM Group</button>
                 </div>
 
-                <div class="grid" style="margin-bottom: 15px;">
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label for="templateSelect">Hardware Template:</label>
-                        <select id="templateSelect" onchange="toggleCustomInputs()">
-                            <option value="1cpu_16core">1 CPU x 16 Cores</option>
-                            <option value="2cpu_12core">2 CPU x 12 Cores, 24 Cores total</option>
-                            <option value="2cpu_16core">2 CPU x 16 Cores, 32 Cores total</option>
-                            <option value="2cpu_32core" selected>2 CPU x 32 Cores, 64 Cores total</option>
-                            <option value="custom">-- Custom Server Specification --</option>
-                        </select>
-                    </div>
+                <!-- RVTools Excel Uploader -->
+                <div class="upload-box" id="uploadDropZone" data-html2canvas-ignore="true">
+                    <label for="rvToolsFileInput">
+                        📁 Import Workloads from RVTools Excel Export (.xlsx / .xls)
+                    </label>
+                    <input type="file" id="rvToolsFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleRVToolsUpload(event)">
+                    <div id="uploadStatusText" class="upload-status"></div>
                 </div>
 
-                <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
-                    <div class="grid">
-                        <div class="form-group">
-                            <label for="customSockets">Sockets per Server</label>
-                            <select id="customSockets" onchange="recalculateHardware()">
-                                <option value="1">1 Socket</option>
-                                <option value="2" selected>2 Sockets</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="customCores">Cores per Socket</label>
-                            <input type="number" id="customCores" value="32" min="1" step="1" oninput="recalculateHardware()">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-
-        <div class="results" id="resultsBlock">
-            <h3>A. Compute Cluster Requirements</h3>
-            <div class="result-item"><span>Total VMs:</span><span class="value" id="outTotalVMs">100</span></div>
-            <div class="result-item"><span>Total vCPUs Requested:</span><span class="value" id="outVCPU">400</span></div>
-            <div class="result-item"><span>Physical Cores Needed:</span><span class="value" id="outCores">134 Cores</span></div>
-            <div class="result-item"><span>Physical RAM plus 20% Overhead:</span><span class="value" id="outTotalRAM">1920 GB</span></div>
-            <div class="result-item" style="color: var(--storage-theme); font-weight: bold;"><span>VM Storage Required plus 20% Overhead:</span><span class="value" id="outVMStorageReq">23.44 TB</span></div>
-            <div class="result-item" id="memorySplitRow" style="display: flex; background: #ffffff; padding: 6px 10px; border-radius: 4px; flex-direction: column;">
-                <div style="display:flex; justify-content:space-between;"><span>DRAM Cluster Total:</span><span class="value" id="outTotalDRAM">960 GB</span></div>
-                <div style="display:flex; justify-content:space-between; color:#0056b3; margin-top:4px;"><span>NVMe Tiered RAM Cluster Total:</span><span class="value" id="outTotalNVMeRAM">960 GB</span></div>
-            </div>
-
-            <div id="nodeResultsBlock" style="display: block; margin-top: 15px; border-top: 1px dashed var(--primary); padding-top: 10px;">
-                <h3>B. Server Node & Disk Sizing Recommendation</h3>
-                
-                <div class="spec-card">
-                    <div class="result-item" style="font-size: 1.1rem; color: #0056b3; margin-bottom: 10px;">
-                        <span>Required Server Nodes:</span>
-                        <span class="value" id="outNodes">3 Nodes</span>
-                    </div>
-                    <div class="result-item"><span>Bottleneck Factor:</span><span class="value" id="outLimitingFactor">CPU Cores</span></div>
-                    <div class="result-item"><span>CPU Spec:</span><span class="value" id="outPerNodeCPU">2 CPU x 32 Cores, 64 Total Cores per server</span></div>
-                    <div class="result-item"><span>Physical DRAM Config:</span><span class="value" id="outPerNodeRAM">512 GB Physical DRAM, 8 x 64GB DIMMs</span></div>
-                    <div class="result-item" id="tieringDiskNodeRow" style="display:flex; color:#0056b3;">
-                        <span style="min-width: 140px;">NVMe Tiering Disk:</span>
-                        <span class="value" id="outPerNodeTieringDisk" style="text-align: right;">1 x 1.92 TB NVMe SSD consumes 1 slot per server</span>
-                    </div>
+                <div class="mode-toggle-box">
+                    <label>
+                        <input type="radio" name="inputMode" id="radioModeGroups" value="groups" checked onchange="toggleInputMode()">
+                        Per-VM Breakdown (Groups)
+                    </label>
+                    <label>
+                        <input type="radio" name="inputMode" id="radioModeDirect" value="direct" onchange="toggleInputMode()">
+                        OR Direct Aggregated Totals
+                    </label>
                 </div>
 
-                <div class="spec-card" style="border-color: var(--storage-theme); background-color: #f0f7f7;">
-                    <div class="result-item" style="font-size: 1rem; color: var(--storage-theme); font-weight: bold; margin-bottom: 8px;">
-                        <span>Auto-Calculated Storage Disks Recommendation:</span>
-                    </div>
-                    <div class="result-item"><span>Cluster Capacity Disks:</span><span class="value" id="outAutoDiskClusterRec" style="color: var(--storage-theme);">6 x 16 TB HDD across cluster</span></div>
-                    <div class="result-item"><span>Per Node Allocation:</span><span class="value" id="outAutoDiskPerNodeRec">2 HDDs per Server across 3 Nodes</span></div>
-                    <div class="result-item" id="outAutoCacheRow" style="display: none;"><span>SSD Cache Recommendation:</span><span class="value" id="outAutoCacheRec" style="color: #0d47a1;">1 x 1.92 TB SSD Cache per server</span></div>
-                </div>
-            </div>
-
-            <div class="note-box" id="nodeNote">
-                <strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.
-            </div>
-        </div>
-    </div>
-
-    <!-- RIGHT PANEL: STORAGE SIZING CALCULATOR -->
-    <div class="right-panel">
-        <h2>Sangfor HCI Sizer - Storage Manual Customizer</h2>
-        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
-            If manual calculations or specific disk bill-of-materials adjustments are required, customize disk quantities and drive sizes below.
-        </p>
-
-        <div class="target-storage-banner">
-            <div class="target-title">Target VM Usable Storage Required</div>
-            <div class="target-value" id="rightTargetStorageVal">23.44 TB</div>
-            <div class="target-status" id="rightTargetStatus">Current Usable Config: 25.50 TB Sufficient</div>
-        </div>
-        
-        <div class="storage-section-title">1. Storage Architecture and Slot Configuration</div>
-        <div class="policy-select-box">
-            <div class="grid">
-                <div class="form-group">
-                    <label for="stArchitecture" style="color: var(--storage-theme);">Storage Architecture:</label>
-                    <select id="stArchitecture" onchange="onStorageArchChange()">
+                <div class="form-group" style="background: #f0f7f7; padding: 12px; border-radius: 6px; border: 1px solid #cce5e5; margin-bottom: 15px;">
+                    <label for="workloadArch" style="color: var(--storage-theme); font-weight: bold;">Required Storage Architecture:</label>
+                    <select id="workloadArch" onchange="onWorkloadArchChange()">
                         <option value="flash" selected>Full Flash All SSD</option>
                         <option value="hybrid">Hybrid HDD plus SSD Cache</option>
                     </select>
                 </div>
+
+                <div id="vmGroupsContainer">
+                    <div class="vm-group-card" id="vmGroup_1">
+                        <div class="vm-group-header">
+                            <span class="vm-group-title">VM Group 1</span>
+                            <button type="button" class="btn-remove" onclick="removeVmGroup(1)" style="display:none;" data-html2canvas-ignore="true">Remove</button>
+                        </div>
+                        <div class="grid">
+                            <div class="form-group">
+                                <label>Group Name</label>
+                                <input type="text" class="groupName" value="General Workload" oninput="calculateSizing()">
+                            </div>
+                            <div class="form-group">
+                                <label>Number of VMs</label>
+                                <input type="number" class="vmCount" value="100" min="1" required oninput="calculateSizing()">
+                            </div>
+                            <div class="form-group">
+                                <label>vCPUs per VM</label>
+                                <input type="number" class="vCPU" value="4" min="1" required oninput="calculateSizing()">
+                            </div>
+                            <div class="form-group">
+                                <label>vCPU:pCPU Ratio</label>
+                                <div class="ratio-input-wrapper">
+                                    <span class="ratio-prefix">1 :</span>
+                                    <input type="number" class="vcpuRatio" value="3" min="0.1" step="0.1" required style="width: 100%;" oninput="calculateSizing()">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>RAM per VM in GB</label>
+                                <input type="number" class="ram" value="16" min="1" required oninput="calculateSizing()">
+                            </div>
+                            <div class="form-group">
+                                <label style="color: var(--storage-theme);">Storage per VM in GB</label>
+                                <input type="number" class="vmStorageGB" value="200" min="1" required oninput="calculateSizing()">
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" class="isNoTiering" id="noTier_1" onchange="calculateSizing()">
+                                <label for="noTier_1">No Tiering</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="directInputContainer" class="vm-group-card" style="display: none; border-color: var(--primary);">
+                    <div class="vm-group-header">
+                        <span class="vm-group-title">Direct Workload Totals</span>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="directVMCount">Total Estimated VMs</label>
+                            <input type="number" id="directVMCount" value="100" min="1" oninput="calculateSizing()">
+                        </div>
+                        <div class="form-group">
+                            <label for="directTotalVCPU">Total vCPUs Requested</label>
+                            <input type="number" id="directTotalVCPU" value="400" min="1" oninput="calculateSizing()">
+                        </div>
+                        <div class="form-group">
+                            <label for="directVCPURatio">vCPU:pCPU Ratio</label>
+                            <div class="ratio-input-wrapper">
+                                <span class="ratio-prefix">1 :</span>
+                                <input type="number" id="directVCPURatio" value="3" min="0.1" step="0.1" style="width: 100%;" oninput="calculateSizing()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="directTotalRAMGB">Total Memory (RAM) in GB</label>
+                            <input type="number" id="directTotalRAMGB" value="1600" min="1" oninput="calculateSizing()">
+                        </div>
+                        <div class="form-group">
+                            <label for="directTotalStorageGB" style="color: var(--storage-theme);">Total VM Storage in GB</label>
+                            <input type="number" id="directTotalStorageGB" value="20000" min="1" oninput="calculateSizing()">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="directNoTiering" onchange="calculateSizing()">
+                            <label for="directNoTiering">No Tiering</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">2. Memory Architecture and Tiering</div>
+                <div class="grid">
+                    <div class="form-group" id="nvmeSizeGroup">
+                        <label for="nvmeSizeTB">Tiering NVMe Disk Size in TB</label>
+                        <input type="number" id="nvmeSizeTB" value="1.92" min="0.96" step="0.01" oninput="calculateSizing()">
+                    </div>
+                </div>
+
+                <button type="button" class="btn-calc" onclick="calculateSizing()" data-html2canvas-ignore="true">Calculate Compute Requirements</button>
+
+                <div id="hardwareSection" style="display: block;">
+                    <div class="section-title">
+                        <span>3. Recommended Server Hardware</span>
+                        <span id="bestTag" class="recommendation-badge">Optimal Pick</span>
+                    </div>
+
+                    <div class="grid" style="margin-bottom: 15px;">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="templateSelect">Hardware Template:</label>
+                            <select id="templateSelect" onchange="toggleCustomInputs()">
+                                <option value="1cpu_16core">1 CPU x 16 Cores</option>
+                                <option value="2cpu_12core">2 CPU x 12 Cores, 24 Cores total</option>
+                                <option value="2cpu_16core">2 CPU x 16 Cores, 32 Cores total</option>
+                                <option value="2cpu_32core" selected>2 CPU x 32 Cores, 64 Cores total</option>
+                                <option value="custom">-- Custom Server Specification --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
+                        <div class="grid">
+                            <div class="form-group">
+                                <label for="customSockets">Sockets per Server</label>
+                                <select id="customSockets" onchange="recalculateHardware()">
+                                    <option value="1">1 Socket</option>
+                                    <option value="2" selected>2 Sockets</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="customCores">Cores per Socket</label>
+                                <input type="number" id="customCores" value="32" min="1" step="1" oninput="recalculateHardware()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- COMPUTE RESULTS INLINE INSIDE LEFT PANEL -->
+            <div class="results" id="resultsBlock">
+                <h3>A. Compute Cluster Requirements</h3>
+                <div class="result-item"><span>Total VMs:</span><span class="value" id="outTotalVMs">100</span></div>
+                <div class="result-item"><span>Total vCPUs Requested:</span><span class="value" id="outVCPU">400</span></div>
+                <div class="result-item"><span>Physical Cores Needed:</span><span class="value" id="outCores">134 Cores</span></div>
+                <div class="result-item"><span>Physical RAM plus 20% Overhead:</span><span class="value" id="outTotalRAM">1920 GB</span></div>
+                <div class="result-item" style="color: var(--storage-theme); font-weight: bold;"><span>VM Storage Required plus 20% Overhead:</span><span class="value" id="outVMStorageReq">23.44 TB</span></div>
+                <div class="result-item" id="memorySplitRow" style="display: flex; background: #ffffff; padding: 6px 10px; border-radius: 4px; flex-direction: column;">
+                    <div style="display:flex; justify-content:space-between;"><span>DRAM Cluster Total:</span><span class="value" id="outTotalDRAM">960 GB</span></div>
+                    <div style="display:flex; justify-content:space-between; color:#0056b3; margin-top:4px;"><span>NVMe Tiered RAM Cluster Total:</span><span class="value" id="outTotalNVMeRAM">960 GB</span></div>
+                </div>
+
+                <div id="nodeResultsBlock" style="display: block; margin-top: 15px; border-top: 1px dashed var(--primary); padding-top: 10px;">
+                    <h3>B. Server Node & Disk Sizing Recommendation</h3>
+                    
+                    <div class="spec-card">
+                        <div class="result-item" style="font-size: 1.1rem; color: #0056b3; margin-bottom: 10px;">
+                            <span>Required Server Nodes:</span>
+                            <span class="value" id="outNodes">3 Nodes</span>
+                        </div>
+                        <div class="result-item"><span>Bottleneck Factor:</span><span class="value" id="outLimitingFactor">CPU Cores</span></div>
+                        <div class="result-item"><span>CPU Spec:</span><span class="value" id="outPerNodeCPU">2 CPU x 32 Cores, 64 Total Cores per server</span></div>
+                        <div class="result-item"><span>Physical DRAM Config:</span><span class="value" id="outPerNodeRAM">512 GB Physical DRAM, 8 x 64GB DIMMs</span></div>
+                        <div class="result-item" id="tieringDiskNodeRow" style="display:flex; color:#0056b3;">
+                            <span style="min-width: 140px;">NVMe Tiering Disk:</span>
+                            <span class="value" id="outPerNodeTieringDisk" style="text-align: right;">1 x 1.92 TB NVMe SSD consumes 1 slot per server</span>
+                        </div>
+                    </div>
+
+                    <div class="spec-card" style="border-color: var(--storage-theme); background-color: #f0f7f7;">
+                        <div class="result-item" style="font-size: 1rem; color: var(--storage-theme); font-weight: bold; margin-bottom: 8px;">
+                            <span>Auto-Calculated Storage Disks Recommendation:</span>
+                        </div>
+                        <div class="result-item"><span>Cluster Capacity Disks:</span><span class="value" id="outAutoDiskClusterRec" style="color: var(--storage-theme);">6 x 16 TB HDD across cluster</span></div>
+                        <div class="result-item"><span>Per Node Allocation:</span><span class="value" id="outAutoDiskPerNodeRec">2 HDDs per Server across 3 Nodes</span></div>
+                        <div class="result-item" id="outAutoCacheRow" style="display: none;"><span>SSD Cache Recommendation:</span><span class="value" id="outAutoCacheRec" style="color: #0d47a1;">1 x 1.92 TB SSD Cache per server</span></div>
+                    </div>
+                </div>
+
+                <div class="note-box" id="nodeNote">
+                    <strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: STORAGE SIZING CALCULATOR & SUMMARY -->
+        <div class="right-panel">
+            <h2>Sangfor HCI Sizer - Storage Manual Customizer</h2>
+            <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
+                If manual calculations or specific disk bill-of-materials adjustments are required, customize disk quantities and drive sizes below.
+            </p>
+
+            <div class="target-storage-banner">
+                <div class="target-title">Target VM Usable Storage Required</div>
+                <div class="target-value" id="rightTargetStorageVal">23.44 TB</div>
+                <div class="target-status" id="rightTargetStatus">Current Usable Config: 25.50 TB Sufficient</div>
+            </div>
+            
+            <div class="storage-section-title">1. Storage Architecture and Slot Configuration</div>
+            <div class="policy-select-box">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="stArchitecture" style="color: var(--storage-theme);">Storage Architecture:</label>
+                        <select id="stArchitecture" onchange="onStorageArchChange()">
+                            <option value="flash" selected>Full Flash All SSD</option>
+                            <option value="hybrid">Hybrid HDD plus SSD Cache</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stNodeCount" style="color: var(--storage-theme);">Cluster Server Nodes:</label>
+                        <input type="number" id="stNodeCount" value="3" min="2" step="1" oninput="calculateStorageOnly()">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Physical Disk Slots Per Node:</label>
+                        <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="storage-section-title">2. Replica Policy and Drive Selection</div>
+            <div class="policy-select-box">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="stCopyPolicy" style="color: var(--storage-theme);">Select Replica Copy Policy:</label>
+                    <select id="stCopyPolicy" onchange="calculateStorageOnly()">
+                        <option value="2" selected>2 Copies Policy</option>
+                        <option value="3">3 Copies Policy</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="btn-add" style="background-color: var(--storage-theme); margin-bottom: 10px;" onclick="addStorageRow()" data-html2canvas-ignore="true">+ Add Disk Row</button>
+
+            <table class="storage-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;" id="thDiskTypeLabel">SSD Disk Size in TB</th>
+                        <th style="width: 20%;">Total Qty</th>
+                        <th style="width: 25%;">Raw Size</th>
+                        <th style="width: 25%;">Usable Capacity</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="storageRowsContainer">
+                    <tr id="stRow_1">
+                        <td><input type="number" class="stDiskSize" value="3.84" min="0.1" step="0.01" oninput="calculateStorageOnly()"></td>
+                        <td><input type="number" class="stDiskQty" value="16" min="1" step="1" oninput="calculateStorageOnly()"></td>
+                        <td><span class="calc-output stRawOutput">61.44 TB</span></td>
+                        <td><span class="calc-output stUsableOutput">25.50 TB</span></td>
+                        <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')" data-html2canvas-ignore="true">×</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div id="hybridCacheBox" class="cache-recommend-box" style="display: none;">
+                <strong>SSD Cache Recommendation Per Node:</strong>
+                <div id="cacheDetailText" style="margin-top: 4px;">Calculating recommended cache...</div>
+            </div>
+
+            <!-- STORAGE RESULTS INLINE INSIDE RIGHT PANEL -->
+            <div class="storage-summary">
+                <h3>Storage and Physical Alignment Summary</h3>
+                <div class="result-item"><span>Architecture Mode:</span><span class="value" id="outArchMode">Full Flash</span></div>
+                <div class="result-item"><span>Configured Cluster Nodes:</span><span class="value" id="outStNodes">3 Nodes</span></div>
+                <div class="result-item"><span>Total Cluster Disk Slots Available:</span><span class="value" id="outTotalSlotCapacity">36 Slots</span></div>
+                <div class="result-item"><span>Total Storage Disks Selected:</span><span class="value" id="outTotalDisks">16 Disks</span></div>
+                <div class="result-item"><span>Replica Policy:</span><span class="value" id="outPolicyText">2 Copies Policy</span></div>
+                <div class="result-item"><span>Total Raw Capacity:</span><span class="value" id="outTotalRawStorage">61.44 TB</span></div>
+                <div class="result-item"><span>Total Usable Capacity:</span><span class="value" id="outTotalUsableStorage" style="color: var(--storage-theme); font-size: 1.1rem;">25.50 TB</span></div>
+
+                <div id="storageAdviceBox" class="storage-advice-alert advice-ok">
+                    Storage physical slots are aligned across 3 nodes at 5.3 drives per node. Fits perfectly with compute requirement.
+                </div>
+            </div>
+
+            <div class="note-box" style="margin-top: 15px;">
+                <strong>Applied Formula:</strong><br>
+                • Raw Size = Disk Size × Qty<br>
+                • <span id="formulaText">Usable Capacity = Raw Size divided by 2 × 83%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARCHITECTURE DRAWING SECTION: DYNAMIC ARCHITECTURE TOPOLOGY -->
+    <div class="topology-wrapper">
+        <div class="topology-card">
+            <h2>System Architecture &amp; Network Topology Diagram</h2>
+            <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
+                Visual schematic showing cluster server nodes connected to dual top-of-rack (ToR) redundant network switches.
+            </p>
+            <div class="topology-svg-container" id="topologySvgContainer">
+                <!-- Dynamic SVG will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM PANEL: SOFTWARE LICENSING & SUBSCRIPTION -->
+    <div class="license-wrapper">
+        <div class="license-card-inner">
+            <h2>Sangfor Software License and Subscription Sizer</h2>
+
+            <div class="license-section-title">Deployment and License Configuration</div>
+
+            <div class="grid">
                 <div class="form-group">
-                    <label for="stNodeCount" style="color: var(--storage-theme);">Cluster Server Nodes:</label>
-                    <input type="number" id="stNodeCount" value="3" min="2" step="1" oninput="calculateStorageOnly()">
+                    <label for="licDeploymentType" style="color: var(--license-theme);">Deployment Option:</label>
+                    <select id="licDeploymentType" onchange="calculateLicensing()">
+                        <option value="hypervisor">Hypervisor only</option>
+                        <option value="hci" selected>Full HCI</option>
+                        <option value="private_cloud">Full Private Cloud Stack</option>
+                    </select>
                 </div>
-                <div class="form-group" style="grid-column: span 2;">
-                    <label for="stMaxSlotsPerNode" style="color: var(--storage-theme);">Max Physical Disk Slots Per Node:</label>
-                    <input type="number" id="stMaxSlotsPerNode" value="12" min="1" step="1" oninput="calculateStorageOnly()">
+
+                <div class="form-group">
+                    <label for="licSubscriptionTerm" style="color: var(--license-theme);">Subscription and Support Term:</label>
+                    <select id="licSubscriptionTerm" onchange="calculateLicensing()">
+                        <option value="1Y">1 Year Subscription and Support</option>
+                        <option value="3Y" selected>3 Years Subscription and Support</option>
+                        <option value="5Y">5 Years Subscription and Support</option>
+                    </select>
                 </div>
             </div>
-        </div>
 
-        <div class="storage-section-title">2. Replica Policy and Drive Selection</div>
-        <div class="policy-select-box">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="stCopyPolicy" style="color: var(--storage-theme);">Select Replica Copy Policy:</label>
-                <select id="stCopyPolicy" onchange="calculateStorageOnly()">
-                    <option value="2" selected>2 Copies Policy</option>
-                    <option value="3">3 Copies Policy</option>
-                </select>
+            <div class="license-summary-card">
+                <h3>Recommended License Bundle Breakdown</h3>
+                <div class="result-item">
+                    <span>Selected Deployment Option:</span>
+                    <span class="license-badge" id="outLicDeploymentName">Full HCI</span>
+                </div>
+                <div class="result-item" style="margin-top: 10px;">
+                    <span>License Metric:</span>
+                    <span class="value" style="color: var(--license-theme);">Based on Number of CPU Sockets</span>
+                </div>
+                <div class="result-item">
+                    <span>Total CPU Sockets in Cluster:</span>
+                    <span class="value" id="outTotalCPUSockets">6 Sockets</span>
+                </div>
+                <div class="result-item" style="font-size: 1.1rem; color: var(--license-theme); font-weight: bold; margin-top: 10px; border-top: 1px dashed #dcd0f0; padding-top: 10px;">
+                    <span>Calculated License SKU:</span>
+                    <span class="value" id="outLicQuantity">6 x Bundle-Advanced-3Y</span>
+                </div>
+                <div class="result-item">
+                    <span>Subscription and Support Duration:</span>
+                    <span class="value" id="outLicSupportTerm">3 Years</span>
+                </div>
             </div>
-        </div>
 
-        <button type="button" class="btn-add" style="background-color: var(--storage-theme); margin-bottom: 10px;" onclick="addStorageRow()">+ Add Disk Row</button>
-
-        <table class="storage-table">
-            <thead>
-                <tr>
-                    <th style="width: 25%;" id="thDiskTypeLabel">SSD Disk Size in TB</th>
-                    <th style="width: 20%;">Total Qty</th>
-                    <th style="width: 25%;">Raw Size</th>
-                    <th style="width: 25%;">Usable Capacity</th>
-                    <th style="width: 5%;"></th>
-                </tr>
-            </thead>
-            <tbody id="storageRowsContainer">
-                <tr id="stRow_1">
-                    <td><input type="number" class="stDiskSize" value="3.84" min="0.1" step="0.01" oninput="calculateStorageOnly()"></td>
-                    <td><input type="number" class="stDiskQty" value="16" min="1" step="1" oninput="calculateStorageOnly()"></td>
-                    <td><span class="calc-output stRawOutput">61.44 TB</span></td>
-                    <td><span class="calc-output stUsableOutput">25.50 TB</span></td>
-                    <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')">×</button></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div id="hybridCacheBox" class="cache-recommend-box" style="display: none;">
-            <strong>SSD Cache Recommendation Per Node:</strong>
-            <div id="cacheDetailText" style="margin-top: 4px;">Calculating recommended cache...</div>
-        </div>
-
-        <div class="storage-summary">
-            <h3>Storage and Physical Alignment Summary</h3>
-            <div class="result-item"><span>Architecture Mode:</span><span class="value" id="outArchMode">Full Flash</span></div>
-            <div class="result-item"><span>Configured Cluster Nodes:</span><span class="value" id="outStNodes">3 Nodes</span></div>
-            <div class="result-item"><span>Total Cluster Disk Slots Available:</span><span class="value" id="outTotalSlotCapacity">36 Slots</span></div>
-            <div class="result-item"><span>Total Storage Disks Selected:</span><span class="value" id="outTotalDisks">16 Disks</span></div>
-            <div class="result-item"><span>Replica Policy:</span><span class="value" id="outPolicyText">2 Copies Policy</span></div>
-            <div class="result-item"><span>Total Raw Capacity:</span><span class="value" id="outTotalRawStorage">61.44 TB</span></div>
-            <div class="result-item"><span>Total Usable Capacity:</span><span class="value" id="outTotalUsableStorage" style="color: var(--storage-theme); font-size: 1.1rem;">25.50 TB</span></div>
-
-            <div id="storageAdviceBox" class="storage-advice-alert advice-ok">
-                Storage physical slots are aligned across 3 nodes at 5.3 drives per node. Fits perfectly with compute requirement.
+            <div class="note-box" style="margin-top: 15px;">
+                <strong>License Bundle Definitions:</strong><br>
+                • Hypervisor only maps to Standard Bundle<br>
+                • Full HCI maps to Advanced Bundle<br>
+                • Full Private Cloud Stack maps to Enterprise Bundle
             </div>
-        </div>
-
-        <div class="note-box" style="margin-top: 15px;">
-            <strong>Applied Formula:</strong><br>
-            • Raw Size = Disk Size × Qty<br>
-            • <span id="formulaText">Usable Capacity = Raw Size divided by 2 × 83%</span>
         </div>
     </div>
+
+    <footer>
+        <span>Generated by Sangfor HCI Architecture Sizing Tool · Designed by Vignesh</span>
+    </footer>
 </div>
-
-<!-- ARCHITECTURE DRAWING SECTION: DYNAMIC ARCHITECTURE TOPOLOGY -->
-<div class="topology-wrapper">
-    <div class="topology-card">
-        <h2>System Architecture &amp; Network Topology Diagram</h2>
-        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">
-            Visual schematic showing cluster server nodes connected to dual top-of-rack (ToR) redundant network switches.
-        </p>
-        <div class="topology-svg-container" id="topologySvgContainer">
-            <!-- Dynamic SVG will be rendered here -->
-        </div>
-    </div>
-</div>
-
-<!-- BOTTOM PANEL: SOFTWARE LICENSING & SUBSCRIPTION -->
-<div class="license-wrapper">
-    <div class="license-card-inner">
-        <h2>Sangfor Software License and Subscription Sizer</h2>
-
-        <div class="license-section-title">Deployment and License Configuration</div>
-
-        <div class="grid">
-            <div class="form-group">
-                <label for="licDeploymentType" style="color: var(--license-theme);">Deployment Option:</label>
-                <select id="licDeploymentType" onchange="calculateLicensing()">
-                    <option value="hypervisor">Hypervisor only</option>
-                    <option value="hci" selected>Full HCI</option>
-                    <option value="private_cloud">Full Private Cloud Stack</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="licSubscriptionTerm" style="color: var(--license-theme);">Subscription and Support Term:</label>
-                <select id="licSubscriptionTerm" onchange="calculateLicensing()">
-                    <option value="1Y">1 Year Subscription and Support</option>
-                    <option value="3Y" selected>3 Years Subscription and Support</option>
-                    <option value="5Y">5 Years Subscription and Support</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="license-summary-card">
-            <h3>Recommended License Bundle Breakdown</h3>
-            <div class="result-item">
-                <span>Selected Deployment Option:</span>
-                <span class="license-badge" id="outLicDeploymentName">Full HCI</span>
-            </div>
-            <div class="result-item" style="margin-top: 10px;">
-                <span>License Metric:</span>
-                <span class="value" style="color: var(--license-theme);">Based on Number of CPU Sockets</span>
-            </div>
-            <div class="result-item">
-                <span>Total CPU Sockets in Cluster:</span>
-                <span class="value" id="outTotalCPUSockets">6 Sockets</span>
-            </div>
-            <div class="result-item" style="font-size: 1.1rem; color: var(--license-theme); font-weight: bold; margin-top: 10px; border-top: 1px dashed #dcd0f0; padding-top: 10px;">
-                <span>Calculated License SKU:</span>
-                <span class="value" id="outLicQuantity">6 x Bundle-Advanced-3Y</span>
-            </div>
-            <div class="result-item">
-                <span>Subscription and Support Duration:</span>
-                <span class="value" id="outLicSupportTerm">3 Years</span>
-            </div>
-        </div>
-
-        <div class="note-box" style="margin-top: 15px;">
-            <strong>License Bundle Definitions:</strong><br>
-            • Hypervisor only maps to Standard Bundle<br>
-            • Full HCI maps to Advanced Bundle<br>
-            • Full Private Cloud Stack maps to Enterprise Bundle
-        </div>
-    </div>
-</div>
-
-<footer>
-    <span>Generated by Sangfor HCI Architecture Sizing Tool · Designed by Vignesh</span>
-</footer>
 
 <script>
     let globalTargetUsableStorageTB = 23.44;
@@ -642,6 +739,93 @@
 
     const HDD_SIZES_TB = [16, 12, 10, 8];
     const SSD_SIZES_TB = [7.68, 3.84, 1.92, 0.96];
+
+    /* RVTOOLS FILE UPLOADER ENGINE WITH FUZZY/CASE-INSENSITIVE MATCHING */
+    function handleRVToolsUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById('uploadStatusText');
+        statusEl.style.color = '#0056b3';
+        statusEl.innerText = "Parsing RVTools file...";
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Find vInfo sheet (case-insensitive)
+                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase() === 'vinfo');
+                if (!targetSheetName) {
+                    targetSheetName = workbook.SheetNames[0];
+                }
+
+                const worksheet = workbook.Sheets[targetSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (!jsonData || jsonData.length < 2) {
+                    throw new Error("Sheet appears to be empty or missing data rows.");
+                }
+
+                // Header extraction & normalization
+                const headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
+
+                const vmColIdx = headers.findIndex(h => h === 'vm' || h === 'vm name' || h.includes('vmname'));
+                const cpuColIdx = headers.findIndex(h => h === 'cpus' || h === 'vcpu' || h === 'vcpus' || h.includes('cpu'));
+                const ramColIdx = headers.findIndex(h => h === 'memory' || h === 'memory size mb' || h.includes('ram') || h.includes('memory'));
+                const diskColIdx = headers.findIndex(h => h.includes('total disk capacity mib') || h.includes('capacity mib') || h.includes('disk capacity') || h.includes('in use mib'));
+
+                if (vmColIdx === -1 || cpuColIdx === -1 || ramColIdx === -1) {
+                    throw new Error("Could not detect standard RVTools columns (VM, CPUs, Memory).");
+                }
+
+                let totalVMs = 0;
+                let totalVCPUs = 0;
+                let totalRAMMB = 0;
+                let totalStorageMB = 0;
+
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+
+                    const vmName = row[vmColIdx];
+                    if (vmName !== undefined && vmName !== null && String(vmName).trim() !== '') {
+                        totalVMs++;
+                        
+                        const cpus = parseFloat(String(row[cpuColIdx] || '0').replace(/,/g, '')) || 0;
+                        const ram = parseFloat(String(row[ramColIdx] || '0').replace(/,/g, '')) || 0;
+                        const disk = diskColIdx !== -1 ? (parseFloat(String(row[diskColIdx] || '0').replace(/,/g, '')) || 0) : 0;
+
+                        totalVCPUs += cpus;
+                        totalRAMMB += ram;
+                        totalStorageMB += disk;
+                    }
+                }
+
+                const totalRAMGB = Math.ceil(totalRAMMB / 1024);
+                const totalStorageGB = Math.ceil(totalStorageMB / 1024);
+
+                // Populate Direct Aggregated Totals
+                document.getElementById('directVMCount').value = totalVMs;
+                document.getElementById('directTotalVCPU').value = totalVCPUs;
+                document.getElementById('directTotalRAMGB').value = totalRAMGB;
+                document.getElementById('directTotalStorageGB').value = totalStorageGB;
+
+                // Switch to Direct mode
+                document.getElementById('radioModeDirect').checked = true;
+                toggleInputMode();
+
+                statusEl.style.color = '#28a745';
+                statusEl.innerText = `Successfully loaded ${totalVMs} VMs, ${totalVCPUs} vCPUs, ${totalRAMGB} GB RAM, and ${totalStorageGB} GB Storage!`;
+            } catch (err) {
+                console.error(err);
+                statusEl.style.color = '#dc3545';
+                statusEl.innerText = `Error parsing RVTools: ${err.message}`;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
     function toggleInputMode() {
         const modeEl = document.querySelector('input[name="inputMode"]:checked');
@@ -672,7 +856,7 @@
         newGroup.innerHTML = `
             <div class="vm-group-header">
                 <span class="vm-group-title">VM Group ${groupCounter}</span>
-                <button type="button" class="btn-remove" onclick="removeVmGroup(${groupCounter})">Remove</button>
+                <button type="button" class="btn-remove" onclick="removeVmGroup(${groupCounter})" data-html2canvas-ignore="true">Remove</button>
             </div>
             <div class="grid">
                 <div class="form-group">
@@ -876,47 +1060,108 @@
         };
     }
 
+    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE */
     function autoCalculateDisks(nodesCount, targetUsableTB, arch, isNvmeTieringActive) {
         const rawNeededTB = (targetUsableTB * 2) / 0.83;
         const rawNeededPerNodeTB = rawNeededTB / nodesCount;
         const maxSlotsPerNode = 12;
-        const netDataSlotsPerNode = isNvmeTieringActive ? (maxSlotsPerNode - 1) : maxSlotsPerNode;
 
-        let chosenSize = 0, disksPerNode = 0, totalQty = 0, cachePerNodeTB = 0;
-        const candidateSizes = (arch === 'hybrid') ? HDD_SIZES_TB : SSD_SIZES_TB;
+        let chosenHddSize = 0, hddsPerNode = 0, totalHddQty = 0;
+        let bestNumGroups = 1, bestSsdSizePerGroup = 0;
+        let costNumGroups = 1, costSsdSizePerGroup = 0;
+        let bestCacheRatio = 0, costCacheRatio = 0;
 
-        for (let sz of candidateSizes) {
-            let nodeQty = Math.ceil(rawNeededPerNodeTB / sz);
-            if (nodeQty < 2) nodeQty = 2; // Enforce minimum 2 drives per node
-            
-            if (nodeQty <= netDataSlotsPerNode) {
-                chosenSize = sz;
-                disksPerNode = nodeQty;
-                totalQty = disksPerNode * nodesCount;
-                break;
+        if (arch === 'hybrid') {
+            let foundValid = false;
+
+            for (let hddSz of HDD_SIZES_TB) {
+                let reqHdds = Math.ceil(rawNeededPerNodeTB / hddSz);
+                if (reqHdds < 2) reqHdds = 2;
+
+                for (let numGroups = 1; numGroups <= Math.min(reqHdds, 6); numGroups++) {
+                    const slotsForTiering = isNvmeTieringActive ? 1 : 0;
+                    const totalSlotsUsed = reqHdds + numGroups + slotsForTiering;
+
+                    if (totalSlotsUsed <= maxSlotsPerNode) {
+                        const rawHddNodeTB = reqHdds * hddSz;
+                        const target15PctTB = rawHddNodeTB * 0.15;
+                        const target10PctTB = rawHddNodeTB * 0.10;
+
+                        let optSsdSz = 0;
+                        for (let ssdSz of SSD_SIZES_TB) {
+                            if ((ssdSz * numGroups) >= target15PctTB) {
+                                optSsdSz = ssdSz;
+                                break;
+                            }
+                        }
+                        if (optSsdSz === 0) optSsdSz = 7.68;
+
+                        let cstSsdSz = 0;
+                        for (let ssdSz of SSD_SIZES_TB) {
+                            if ((ssdSz * numGroups) >= target10PctTB) {
+                                cstSsdSz = ssdSz;
+                                break;
+                            }
+                        }
+
+                        chosenHddSize = hddSz;
+                        hddsPerNode = reqHdds;
+                        totalHddQty = reqHdds * nodesCount;
+
+                        bestNumGroups = numGroups;
+                        bestSsdSizePerGroup = optSsdSz;
+                        bestCacheRatio = ((optSsdSz * numGroups) / rawHddNodeTB) * 100;
+
+                        costNumGroups = numGroups;
+                        costSsdSizePerGroup = cstSsdSz > 0 ? cstSsdSz : optSsdSz;
+                        costCacheRatio = ((costSsdSizePerGroup * numGroups) / rawHddNodeTB) * 100;
+
+                        foundValid = true;
+                        break;
+                    }
+                }
+                if (foundValid) break;
+            }
+
+            if (!foundValid) {
+                chosenHddSize = 16;
+                hddsPerNode = Math.ceil(rawNeededPerNodeTB / 16);
+                totalHddQty = hddsPerNode * nodesCount;
+                bestNumGroups = Math.min(Math.ceil(hddsPerNode / 2), 6);
+                bestSsdSizePerGroup = 7.68;
+                bestCacheRatio = ((7.68 * bestNumGroups) / (hddsPerNode * 16)) * 100;
+            }
+        } else {
+            for (let sz of SSD_SIZES_TB) {
+                let nodeQty = Math.ceil(rawNeededPerNodeTB / sz);
+                if (nodeQty < 2) nodeQty = 2;
+                
+                const slotsForTiering = isNvmeTieringActive ? 1 : 0;
+                if ((nodeQty + slotsForTiering) <= maxSlotsPerNode) {
+                    chosenHddSize = sz;
+                    hddsPerNode = nodeQty;
+                    totalHddQty = nodeQty * nodesCount;
+                    break;
+                }
+            }
+
+            if (chosenHddSize === 0) {
+                chosenHddSize = 0.96;
+                hddsPerNode = Math.ceil(rawNeededPerNodeTB / 0.96);
+                totalHddQty = hddsPerNode * nodesCount;
             }
         }
 
-        if (chosenSize === 0) {
-            chosenSize = candidateSizes[candidateSizes.length - 1];
-            disksPerNode = Math.ceil(rawNeededPerNodeTB / chosenSize);
-            totalQty = disksPerNode * nodesCount;
-        }
-
-        if (arch === 'hybrid') {
-            const rawPerNodeTB = chosenSize * disksPerNode;
-            const cache10Percent = rawPerNodeTB * 0.10;
-            if (cache10Percent <= 1.92) cachePerNodeTB = 1.92;
-            else if (cache10Percent <= 3.84) cachePerNodeTB = 3.84;
-            else cachePerNodeTB = 7.68;
-        }
-
         return {
-            diskSize: chosenSize,
-            totalQty: totalQty,
-            disksPerNode: disksPerNode,
-            cachePerNodeTB: cachePerNodeTB,
-            netDataSlotsPerNode: netDataSlotsPerNode
+            diskSize: chosenHddSize,
+            totalQty: totalHddQty,
+            disksPerNode: hddsPerNode,
+            bestNumGroups: bestNumGroups,
+            bestSsdSizePerGroup: bestSsdSizePerGroup,
+            bestCacheRatio: bestCacheRatio,
+            costNumGroups: costNumGroups,
+            costSsdSizePerGroup: costSsdSizePerGroup,
+            costCacheRatio: costCacheRatio
         };
     }
 
@@ -963,24 +1208,31 @@
         const selectedArch = document.getElementById('workloadArch').value;
         const autoStorage = autoCalculateDisks(nodes, globalTargetUsableStorageTB, selectedArch, useTiering);
         const diskTypeLabel = selectedArch === 'hybrid' ? 'HDD' : 'SSD';
+
         let clusterRecText = `${autoStorage.totalQty} x ${autoStorage.diskSize} TB ${diskTypeLabel} across cluster`;
         
         if (selectedArch === 'hybrid') {
-            clusterRecText += ` PLUS 1 x ${autoStorage.cachePerNodeTB} TB SSD Cache per server`;
+            const totalSsdCountCluster = autoStorage.bestNumGroups * nodes;
+            clusterRecText += ` PLUS ${totalSsdCountCluster} x ${autoStorage.bestSsdSizePerGroup} TB SSD Cache across cluster (Distributed in ${autoStorage.bestNumGroups} Disk Group(s) per server)`;
         }
         
         document.getElementById('outAutoDiskClusterRec').innerText = clusterRecText;
         
         let nodeAllocationText = `${autoStorage.disksPerNode} ${diskTypeLabel}s per Server across ${nodes} Nodes`;
-        if (useTiering) {
-            nodeAllocationText += ` (Net ${autoStorage.netDataSlotsPerNode} data slots per server after NVMe tiering)`;
+        if (selectedArch === 'hybrid') {
+            const hddsPerGrp = Math.floor(autoStorage.disksPerNode / autoStorage.bestNumGroups);
+            nodeAllocationText += ` (${autoStorage.bestNumGroups} Disk Group(s)/server: 1 x ${autoStorage.bestSsdSizePerGroup} TB SSD + ~${hddsPerGrp} x ${autoStorage.diskSize} TB HDD per group)`;
         }
         document.getElementById('outAutoDiskPerNodeRec').innerText = nodeAllocationText;
 
         const cacheRow = document.getElementById('outAutoCacheRow');
         if (selectedArch === 'hybrid') {
             cacheRow.style.display = 'flex';
-            document.getElementById('outAutoCacheRec').innerText = `1 x ${autoStorage.cachePerNodeTB} TB SSD Cache per server`;
+            let cacheText = `${autoStorage.bestNumGroups} x ${autoStorage.bestSsdSizePerGroup} TB SSD Cache per server (${autoStorage.bestCacheRatio.toFixed(1)}% cache ratio)`;
+            if (autoStorage.costSsdSizePerGroup < autoStorage.bestSsdSizePerGroup) {
+                cacheText += ` | Cost-Optimized Option: ${autoStorage.costNumGroups} x ${autoStorage.costSsdSizePerGroup} TB SSD Cache (${autoStorage.costCacheRatio.toFixed(1)}% ratio)`;
+            }
+            document.getElementById('outAutoCacheRec').innerText = cacheText;
         } else {
             cacheRow.style.display = 'none';
         }
@@ -1010,7 +1262,7 @@
             <td><input type="number" class="stDiskQty" value="${diskQty}" min="1" step="1" oninput="calculateStorageOnly()"></td>
             <td><span class="calc-output stRawOutput">0.00 TB</span></td>
             <td><span class="calc-output stUsableOutput">0.00 TB</span></td>
-            <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')">×</button></td>
+            <td><button type="button" class="btn-remove" onclick="removeStorageRow('stRow_1')" data-html2canvas-ignore="true">×</button></td>
         `;
         container.appendChild(tr);
     }
@@ -1040,7 +1292,7 @@
             <td><input type="number" class="stDiskQty" value="6" min="1" step="1" oninput="calculateStorageOnly()"></td>
             <td><span class="calc-output stRawOutput">0.00 TB</span></td>
             <td><span class="calc-output stUsableOutput">0.00 TB</span></td>
-            <td><button type="button" class="btn-remove" onclick="removeStorageRow('${rowId}')">×</button></td>
+            <td><button type="button" class="btn-remove" onclick="removeStorageRow('${rowId}')" data-html2canvas-ignore="true">×</button></td>
         `;
 
         container.appendChild(tr);
@@ -1097,21 +1349,44 @@
         if (arch === 'hybrid') {
             cacheBox.style.display = 'block';
             const rawPerNodeTB = totalRawTB / stNodes;
-            const cache10Percent = rawPerNodeTB * 0.10;
-            const cache20Percent = rawPerNodeTB * 0.20;
+            const hddCountPerNode = totalQty / stNodes;
+            const target15PctTB = rawPerNodeTB * 0.15;
+            const target10PctTB = rawPerNodeTB * 0.10;
 
-            let recommendedSSDSize = 1.92, qtySSD = 1;
-            if (cache10Percent <= 1.92) recommendedSSDSize = 1.92;
-            else if (cache10Percent <= 3.84) recommendedSSDSize = 3.84;
-            else if (cache10Percent <= 7.68) recommendedSSDSize = 7.68;
-            else { recommendedSSDSize = 7.68; qtySSD = Math.ceil(cache10Percent / 7.68); }
+            let bestGroups = 1, bestSsdSz = 7.68;
+            let costGroups = 1, costSsdSz = 3.84;
 
-            const currentRatio = rawPerNodeTB > 0 ? ((recommendedSSDSize * qtySSD) / rawPerNodeTB * 100).toFixed(1) : 0;
+            for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
+                for (let ssdSz of SSD_SIZES_TB) {
+                    if ((ssdSz * grps) >= target15PctTB) {
+                        bestGroups = grps;
+                        bestSsdSz = ssdSz;
+                        break;
+                    }
+                }
+            }
 
-            document.getElementById('cacheDetailText').innerHTML = 
-                `Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
-                `Required Cache Range: <strong>${cache10Percent.toFixed(2)} TB to ${cache20Percent.toFixed(2)} TB</strong><br>` +
-                `<strong>Recommended SSD Cache:</strong> ${qtySSD} x <strong>${recommendedSSDSize} TB Enterprise SSD</strong> per node, approximately ${currentRatio}% cache ratio.`;
+            for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
+                for (let ssdSz of SSD_SIZES_TB) {
+                    if ((ssdSz * grps) >= target10PctTB) {
+                        costGroups = grps;
+                        costSsdSz = ssdSz;
+                        break;
+                    }
+                }
+            }
+
+            const bestRatio = rawPerNodeTB > 0 ? ((bestSsdSz * bestGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
+            const costRatio = rawPerNodeTB > 0 ? ((costSsdSz * costGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
+
+            let cacheHTML = `Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
+                            `⭐ <strong>Optimal Cache Recommendation (≥15% Ratio):</strong> ${bestGroups} Disk Group(s) with <strong>${bestGroups} x ${bestSsdSz} TB SSD</strong> per node (${bestRatio}% ratio)<br>`;
+
+            if (costSsdSz < bestSsdSz || costGroups < bestGroups) {
+                cacheHTML += `💡 <strong>Cost-Optimized Option (10% to 15% Ratio):</strong> ${costGroups} Disk Group(s) with <strong>${costGroups} x ${costSsdSz} TB SSD</strong> per node (${costRatio}% ratio)`;
+            }
+
+            document.getElementById('cacheDetailText').innerHTML = cacheHTML;
         } else {
             cacheBox.style.display = 'none';
         }
@@ -1158,14 +1433,18 @@
         }
     }
 
-    /* RENDER DYNAMIC SVG TOPOLOGY DIAGRAM */
     function renderTopologyDiagram(nodesCount) {
         const container = document.getElementById('topologySvgContainer');
         const isTwoNode = nodesCount === 2;
-        const totalItems = isTwoNode ? 3 : nodesCount; // 2 Nodes + 1 Witness OR N Nodes
+        const isHighNodeCount = nodesCount > 8;
+
+        let totalItems = isTwoNode ? 3 : nodesCount;
+        if (isHighNodeCount) {
+            totalItems = 5;
+        }
         
-        const svgWidth = Math.max(750, totalItems * 180 + 100);
-        const svgHeight = 320;
+        const svgWidth = Math.max(780, totalItems * 160 + 100);
+        const svgHeight = 330;
         
         const sw1X = svgWidth / 2 - 160;
         const sw2X = svgWidth / 2 + 160;
@@ -1190,6 +1469,10 @@
                     <stop offset="0%" stop-color="#17a2b8"/>
                     <stop offset="100%" stop-color="#117a8b"/>
                 </linearGradient>
+                <linearGradient id="groupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f0f7f7"/>
+                    <stop offset="100%" stop-color="#e6f2f2"/>
+                </linearGradient>
             </defs>
         `;
 
@@ -1212,29 +1495,62 @@
         const spacing = svgWidth / (totalItems + 1);
         const nodeY = 200;
 
-        for (let i = 0; i < totalItems; i++) {
-            const itemX = spacing * (i + 1);
-            const isWitness = isTwoNode && i === 2;
+        if (isHighNodeCount) {
+            const itemPositions = [
+                { x: spacing * 1, label: "Node 1", sub: "Sangfor HCI Host", type: "node" },
+                { x: spacing * 2, label: "Node 2", sub: "Sangfor HCI Host", type: "node" },
+                { x: spacing * 3, label: `+${nodesCount - 4} Cluster Nodes`, sub: `Nodes 3 to ${nodesCount - 2}`, type: "group" },
+                { x: spacing * 4, label: `Node ${nodesCount - 1}`, sub: "Sangfor HCI Host", type: "node" },
+                { x: spacing * 5, label: `Node ${nodesCount}`, sub: "Sangfor HCI Host", type: "node" }
+            ];
 
-            svgHtml += `<line x1="${itemX - 15}" y1="${nodeY}" x2="${sw1X}" y2="${swY + 40}" stroke="#28a745" stroke-width="1.5" stroke-opacity="0.7"/>`;
-            svgHtml += `<line x1="${itemX + 15}" y1="${nodeY}" x2="${sw2X}" y2="${swY + 40}" stroke="#0056b3" stroke-width="1.5" stroke-opacity="0.7"/>`;
+            itemPositions.forEach(item => {
+                svgHtml += `<line x1="${item.x - 15}" y1="${nodeY}" x2="${sw1X}" y2="${swY + 40}" stroke="#28a745" stroke-width="1.5" stroke-opacity="0.7"/>`;
+                svgHtml += `<line x1="${item.x + 15}" y1="${nodeY}" x2="${sw2X}" y2="${swY + 40}" stroke="#0056b3" stroke-width="1.5" stroke-opacity="0.7"/>`;
 
-            if (isWitness) {
-                svgHtml += `
-                    <g filter="url(#shadow)">
-                        <rect x="${itemX - 60}" y="${nodeY}" width="120" height="50" rx="6" fill="url(#witnessGrad)" stroke="#0f6674" stroke-width="1.5"/>
-                        <text x="${itemX}" y="${nodeY + 22}" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Witness Node</text>
-                        <text x="${itemX}" y="${nodeY + 38}" fill="#e0f7fa" font-size="10" text-anchor="middle">Quorum Tie-Breaker</text>
-                    </g>
-                `;
-            } else {
-                svgHtml += `
-                    <g filter="url(#shadow)">
-                        <rect x="${itemX - 65}" y="${nodeY}" width="130" height="60" rx="6" fill="url(#nodeGrad)" stroke="#002b5c" stroke-width="1.5"/>
-                        <text x="${itemX}" y="${nodeY + 24}" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Node ${i + 1}</text>
-                        <text x="${itemX}" y="${nodeY + 42}" fill="#b3d7ff" font-size="10" text-anchor="middle">Sangfor HCI Host</text>
-                    </g>
-                `;
+                if (item.type === "group") {
+                    svgHtml += `
+                        <g filter="url(#shadow)">
+                            <rect x="${item.x - 70}" y="${nodeY - 5}" width="140" height="70" rx="6" fill="url(#groupGrad)" stroke="#008080" stroke-width="2" stroke-dasharray="4,2"/>
+                            <text x="${item.x}" y="${nodeY + 22}" fill="#008080" font-size="13" font-weight="bold" text-anchor="middle">${item.label}</text>
+                            <text x="${item.x}" y="${nodeY + 42}" fill="#555555" font-size="11" text-anchor="middle">${item.sub}</text>
+                        </g>
+                    `;
+                } else {
+                    svgHtml += `
+                        <g filter="url(#shadow)">
+                            <rect x="${item.x - 65}" y="${nodeY}" width="130" height="60" rx="6" fill="url(#nodeGrad)" stroke="#002b5c" stroke-width="1.5"/>
+                            <text x="${item.x}" y="${nodeY + 24}" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">${item.label}</text>
+                            <text x="${item.x}" y="${nodeY + 42}" fill="#b3d7ff" font-size="10" text-anchor="middle">${item.sub}</text>
+                        </g>
+                    `;
+                }
+            });
+        } else {
+            for (let i = 0; i < totalItems; i++) {
+                const itemX = spacing * (i + 1);
+                const isWitness = isTwoNode && i === 2;
+
+                svgHtml += `<line x1="${itemX - 15}" y1="${nodeY}" x2="${sw1X}" y2="${swY + 40}" stroke="#28a745" stroke-width="1.5" stroke-opacity="0.7"/>`;
+                svgHtml += `<line x1="${itemX + 15}" y1="${nodeY}" x2="${sw2X}" y2="${swY + 40}" stroke="#0056b3" stroke-width="1.5" stroke-opacity="0.7"/>`;
+
+                if (isWitness) {
+                    svgHtml += `
+                        <g filter="url(#shadow)">
+                            <rect x="${itemX - 60}" y="${nodeY}" width="120" height="50" rx="6" fill="url(#witnessGrad)" stroke="#0f6674" stroke-width="1.5"/>
+                            <text x="${itemX}" y="${nodeY + 22}" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Witness Node</text>
+                            <text x="${itemX}" y="${nodeY + 38}" fill="#e0f7fa" font-size="10" text-anchor="middle">Quorum Tie-Breaker</text>
+                        </g>
+                    `;
+                } else {
+                    svgHtml += `
+                        <g filter="url(#shadow)">
+                            <rect x="${itemX - 65}" y="${nodeY}" width="130" height="60" rx="6" fill="url(#nodeGrad)" stroke="#002b5c" stroke-width="1.5"/>
+                            <text x="${itemX}" y="${nodeY + 24}" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Node ${i + 1}</text>
+                            <text x="${itemX}" y="${nodeY + 42}" fill="#b3d7ff" font-size="10" text-anchor="middle">Sangfor HCI Host</text>
+                        </g>
+                    `;
+                }
             }
         }
 
@@ -1278,6 +1594,20 @@
         document.getElementById('outTotalCPUSockets').innerText = `${totalSockets} Sockets`;
         document.getElementById('outLicQuantity').innerText = skuString;
         document.getElementById('outLicSupportTerm').innerText = termYearsText;
+    }
+
+    function exportToPDF() {
+        const element = document.getElementById('exportPdfArea');
+        const opt = {
+            margin:       [0.3, 0.3, 0.3, 0.3],
+            filename:     'Sangfor_HCI_Sizing_Report.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(element).save();
     }
 
     window.onload = function() {
