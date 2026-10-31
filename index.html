@@ -6,8 +6,6 @@
     <title>Sangfor HCI Architecture & Sizing Tool</title>
     <!-- SheetJS for RVTools Excel parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- html2pdf for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #0056b3;
@@ -54,14 +52,15 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .btn-export-pdf {
-            background-color: #ff5722;
+        .btn-export-word {
+            background-color: #2b579a;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 8px 18px;
             font-size: 0.9rem;
             font-weight: bold;
             border-radius: 20px;
@@ -73,8 +72,8 @@
             transition: background 0.2s, transform 0.1s;
         }
 
-        .btn-export-pdf:hover {
-            background-color: #e64a19;
+        .btn-export-word:hover {
+            background-color: #1e3c6e;
             transform: translateY(-1px);
         }
 
@@ -315,9 +314,9 @@
             <h1>Sangfor HCI Architecture & Sizing Tool</h1>
         </div>
         <div class="header-actions">
-            <button type="button" class="btn-export-pdf" onclick="exportToPDF()" data-html2canvas-ignore="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Export PDF Report
+            <button type="button" class="btn-export-word" onclick="exportToWord()" data-html2canvas-ignore="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                Export Word Report
             </button>
             <div class="designer-badge">
                 <div class="designer-avatar-container">
@@ -755,7 +754,6 @@
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                // Find vInfo sheet (case-insensitive)
                 let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase() === 'vinfo');
                 if (!targetSheetName) {
                     targetSheetName = workbook.SheetNames[0];
@@ -768,13 +766,11 @@
                     throw new Error("Sheet appears to be empty or missing data rows.");
                 }
 
-                // Header extraction & normalization
                 const headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
 
                 const vmColIdx = headers.findIndex(h => h === 'vm' || h === 'vm name' || h.includes('vmname'));
                 const cpuColIdx = headers.findIndex(h => h === 'cpus' || h === 'vcpu' || h === 'vcpus' || h.includes('cpu'));
                 
-                // Memory column detection excluding disk terms
                 const ramColIdx = headers.findIndex(h => 
                     (h.includes('memory') || h.includes('ram') || h.includes('size mb') || h.includes('size mib') || h === 'mem' || h === 'mb') &&
                     !h.includes('disk') && !h.includes('capacity') && !h.includes('provisioned')
@@ -812,13 +808,11 @@
                 const totalRAMGB = Math.ceil(totalRAMMB / 1024);
                 const totalStorageGB = Math.ceil(totalStorageMB / 1024);
 
-                // Populate Direct Aggregated Totals
                 document.getElementById('directVMCount').value = totalVMs;
                 document.getElementById('directTotalVCPU').value = totalVCPUs;
                 document.getElementById('directTotalRAMGB').value = totalRAMGB;
                 document.getElementById('directTotalStorageGB').value = totalStorageGB;
 
-                // Switch to Direct mode
                 document.getElementById('radioModeDirect').checked = true;
                 toggleInputMode();
 
@@ -1098,7 +1092,6 @@
                 let reqHdds = Math.ceil(rawNeededPerNodeTB / hddSz);
                 if (reqHdds < 2) reqHdds = 2;
 
-                // Evaluate starting from 1 group up to max 6 groups
                 for (let numGroups = 1; numGroups <= Math.min(reqHdds, 6); numGroups++) {
                     const slotsForTiering = isNvmeTieringActive ? 1 : 0;
                     const totalSlotsUsed = reqHdds + numGroups + slotsForTiering;
@@ -1108,7 +1101,6 @@
                         const target15PctTB = rawHddNodeTB * 0.15;
                         const target10PctTB = rawHddNodeTB * 0.10;
 
-                        // Find the SMALLEST SSD drive size that achieves >= 15% ratio
                         let optSsdSz = 0;
                         for (let ssdSz of sortedSsdAsc) {
                             if ((ssdSz * numGroups) >= target15PctTB) {
@@ -1118,7 +1110,6 @@
                         }
                         if (optSsdSz === 0) optSsdSz = 7.68;
 
-                        // Find the SMALLEST SSD drive size for >= 10% ratio
                         let cstSsdSz = 0;
                         for (let ssdSz of sortedSsdAsc) {
                             if ((ssdSz * numGroups) >= target10PctTB) {
@@ -1370,7 +1361,6 @@
             let costGroups = 1, costSsdSz = 0;
             const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
 
-            // Evaluate starting at 1 Disk Group to pick the smallest SSD
             let foundOpt = false;
             for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
                 for (let ssdSz of sortedSsdAsc) {
@@ -1619,18 +1609,69 @@
         document.getElementById('outLicSupportTerm').innerText = termYearsText;
     }
 
-    function exportToPDF() {
+    /* DIRECT INLINE WORD (.DOC) EXPORT ENGINE */
+    function exportToWord() {
         const element = document.getElementById('exportPdfArea');
-        const opt = {
-            margin:       [0.3, 0.3, 0.3, 0.3],
-            filename:     'Sangfor_HCI_Sizing_Report.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-        };
+        const clone = element.cloneNode(true);
+        
+        // Remove interactive upload, remove buttons and controls
+        clone.querySelectorAll('[data-html2canvas-ignore="true"]').forEach(el => el.remove());
 
-        html2pdf().set(opt).from(element).save();
+        const htmlHeader = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                  xmlns:w='urn:schemas-microsoft-com:office:word' 
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>Sangfor HCI Sizing Report</title>
+                <!--[if gte mso 9]>
+                <xml>
+                <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>100</w:Zoom>
+                    <w:DoNotOptimizeForBrowser/>
+                </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { font-family: Arial, sans-serif; font-size: 10pt; color: #333333; line-height: 1.4; }
+                    h1 { font-size: 18pt; color: #ffffff; background-color: #0056b3; padding: 10px; margin-bottom: 15px; }
+                    h2 { font-size: 14pt; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 4px; margin-top: 20px; }
+                    h3 { font-size: 12pt; color: #008080; margin-top: 15px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
+                    th, td { border: 1px solid #cccccc; padding: 6px 8px; text-align: left; }
+                    th { background-color: #f0f7f7; color: #008080; font-weight: bold; }
+                    .result-item { margin-bottom: 6px; }
+                    .spec-card { border: 1px solid #b8daff; padding: 10px; background-color: #f8fafd; margin-bottom: 10px; }
+                    .note-box { background-color: #f9f9f9; border: 1px solid #d0d0d0; padding: 8px; font-size: 9pt; }
+                </style>
+            </head>
+            <body>
+        `;
+
+        const htmlFooter = "</body></html>";
+        const fullSource = htmlHeader + clone.innerHTML + htmlFooter;
+
+        const blob = new Blob(['\ufeff' + fullSource], {
+            type: 'application/msword'
+        });
+
+        const fileName = 'Sangfor_HCI_Sizing_Report.doc';
+
+        if (navigator.msSaveOrOpenBlob) {
+            navigator.msSaveOrOpenBlob(blob, fileName);
+        } else {
+            const downloadLink = document.createElement("a");
+            document.body.appendChild(downloadLink);
+            
+            const url = URL.createObjectURL(blob);
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            downloadLink.click();
+            
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(url);
+        }
     }
 
     window.onload = function() {
