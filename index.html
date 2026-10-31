@@ -347,7 +347,7 @@
                 </div>
 
                 <!-- RVTools Excel Uploader -->
-                <div class="upload-box" id="uploadDropZone" data-html2canvas-ignore="true">
+                <div class="upload-box" id="uploadDropZone" onclick="document.getElementById('rvToolsFileInput').click();" data-html2canvas-ignore="true">
                     <label for="rvToolsFileInput">
                         📁 Import Workloads from RVTools Excel Export (.xlsx / .xls)
                     </label>
@@ -740,7 +740,7 @@
     const HDD_SIZES_TB = [16, 12, 10, 8];
     const SSD_SIZES_TB = [7.68, 3.84, 1.92, 0.96];
 
-    /* RVTOOLS FILE UPLOADER ENGINE WITH FUZZY/CASE-INSENSITIVE MATCHING */
+    /* RVTOOLS FILE UPLOADER ENGINE WITH ROBUST MEMORY PARSING */
     function handleRVToolsUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -773,7 +773,13 @@
 
                 const vmColIdx = headers.findIndex(h => h === 'vm' || h === 'vm name' || h.includes('vmname'));
                 const cpuColIdx = headers.findIndex(h => h === 'cpus' || h === 'vcpu' || h === 'vcpus' || h.includes('cpu'));
-                const ramColIdx = headers.findIndex(h => h === 'memory' || h === 'memory size mb' || h.includes('ram') || h.includes('memory'));
+                
+                // Memory column detection excluding disk terms
+                const ramColIdx = headers.findIndex(h => 
+                    (h.includes('memory') || h.includes('ram') || h.includes('size mb') || h.includes('size mib') || h === 'mem' || h === 'mb') &&
+                    !h.includes('disk') && !h.includes('capacity') && !h.includes('provisioned')
+                );
+
                 const diskColIdx = headers.findIndex(h => h.includes('total disk capacity mib') || h.includes('capacity mib') || h.includes('disk capacity') || h.includes('in use mib'));
 
                 if (vmColIdx === -1 || cpuColIdx === -1 || ramColIdx === -1) {
@@ -825,6 +831,19 @@
             }
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    /* DROPDOWN SYNC HANDLERS */
+    function onWorkloadArchChange() {
+        const val = document.getElementById('workloadArch').value;
+        document.getElementById('stArchitecture').value = val;
+        calculateSizing();
+    }
+
+    function onStorageArchChange() {
+        const val = document.getElementById('stArchitecture').value;
+        document.getElementById('workloadArch').value = val;
+        calculateSizing();
     }
 
     function toggleInputMode() {
@@ -1060,7 +1079,7 @@
         };
     }
 
-    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE */
+    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE (MINIMAL CACHE OVER-PROVISIONING) */
     function autoCalculateDisks(nodesCount, targetUsableTB, arch, isNvmeTieringActive) {
         const rawNeededTB = (targetUsableTB * 2) / 0.83;
         const rawNeededPerNodeTB = rawNeededTB / nodesCount;
@@ -1073,11 +1092,13 @@
 
         if (arch === 'hybrid') {
             let foundValid = false;
+            const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
 
             for (let hddSz of HDD_SIZES_TB) {
                 let reqHdds = Math.ceil(rawNeededPerNodeTB / hddSz);
                 if (reqHdds < 2) reqHdds = 2;
 
+                // Evaluate starting from 1 group up to max 6 groups
                 for (let numGroups = 1; numGroups <= Math.min(reqHdds, 6); numGroups++) {
                     const slotsForTiering = isNvmeTieringActive ? 1 : 0;
                     const totalSlotsUsed = reqHdds + numGroups + slotsForTiering;
@@ -1087,8 +1108,9 @@
                         const target15PctTB = rawHddNodeTB * 0.15;
                         const target10PctTB = rawHddNodeTB * 0.10;
 
+                        // Find the SMALLEST SSD drive size that achieves >= 15% ratio
                         let optSsdSz = 0;
-                        for (let ssdSz of SSD_SIZES_TB) {
+                        for (let ssdSz of sortedSsdAsc) {
                             if ((ssdSz * numGroups) >= target15PctTB) {
                                 optSsdSz = ssdSz;
                                 break;
@@ -1096,8 +1118,9 @@
                         }
                         if (optSsdSz === 0) optSsdSz = 7.68;
 
+                        // Find the SMALLEST SSD drive size for >= 10% ratio
                         let cstSsdSz = 0;
-                        for (let ssdSz of SSD_SIZES_TB) {
+                        for (let ssdSz of sortedSsdAsc) {
                             if ((ssdSz * numGroups) >= target10PctTB) {
                                 cstSsdSz = ssdSz;
                                 break;
@@ -1127,7 +1150,7 @@
                 chosenHddSize = 16;
                 hddsPerNode = Math.ceil(rawNeededPerNodeTB / 16);
                 totalHddQty = hddsPerNode * nodesCount;
-                bestNumGroups = Math.min(Math.ceil(hddsPerNode / 2), 6);
+                bestNumGroups = 1;
                 bestSsdSizePerGroup = 7.68;
                 bestCacheRatio = ((7.68 * bestNumGroups) / (hddsPerNode * 16)) * 100;
             }
@@ -1267,16 +1290,6 @@
         container.appendChild(tr);
     }
 
-    function onWorkloadArchChange() {
-        document.getElementById('stArchitecture').value = document.getElementById('workloadArch').value;
-        calculateSizing();
-    }
-
-    function onStorageArchChange() {
-        document.getElementById('workloadArch').value = document.getElementById('stArchitecture').value;
-        calculateSizing();
-    }
-
     function addStorageRow() {
         storageRowCounter++;
         const container = document.getElementById('storageRowsContainer');
@@ -1353,28 +1366,38 @@
             const target15PctTB = rawPerNodeTB * 0.15;
             const target10PctTB = rawPerNodeTB * 0.10;
 
-            let bestGroups = 1, bestSsdSz = 7.68;
-            let costGroups = 1, costSsdSz = 3.84;
+            let bestGroups = 1, bestSsdSz = 0;
+            let costGroups = 1, costSsdSz = 0;
+            const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
 
+            // Evaluate starting at 1 Disk Group to pick the smallest SSD
+            let foundOpt = false;
             for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
-                for (let ssdSz of SSD_SIZES_TB) {
+                for (let ssdSz of sortedSsdAsc) {
                     if ((ssdSz * grps) >= target15PctTB) {
                         bestGroups = grps;
                         bestSsdSz = ssdSz;
+                        foundOpt = true;
                         break;
                     }
                 }
+                if (foundOpt) break;
             }
+            if (!foundOpt) { bestGroups = 1; bestSsdSz = 7.68; }
 
+            let foundCost = false;
             for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
-                for (let ssdSz of SSD_SIZES_TB) {
+                for (let ssdSz of sortedSsdAsc) {
                     if ((ssdSz * grps) >= target10PctTB) {
                         costGroups = grps;
                         costSsdSz = ssdSz;
+                        foundCost = true;
                         break;
                     }
                 }
+                if (foundCost) break;
             }
+            if (!foundCost) { costGroups = 1; costSsdSz = bestSsdSz; }
 
             const bestRatio = rawPerNodeTB > 0 ? ((bestSsdSz * bestGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
             const costRatio = rawPerNodeTB > 0 ? ((costSsdSz * costGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
