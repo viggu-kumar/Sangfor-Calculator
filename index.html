@@ -538,7 +538,7 @@
                 </div>
 
                 <div class="note-box" id="nodeNote">
-                    <strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.
+                    <strong>N+1 High Availability:</strong> Calculations guarantee complete single-node failover survival ($N-1$ active nodes).
                 </div>
             </div>
         </div>
@@ -1029,10 +1029,10 @@
         }
     }
 
-    function getScaledRAM(requiredRAMPerNode, maxDimmSlots) {
+    function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots) {
         const presets = [64, 128, 256, 512, 1024];
         for (let ram of presets) {
-            if (ram >= requiredRAMPerNode) {
+            if (ram >= requiredRAMPerActiveNode) {
                 const num64GBDimms = Math.ceil(ram / 64);
                 if (num64GBDimms <= maxDimmSlots) {
                     return { ramGB: ram, dimmCount: num64GBDimms };
@@ -1042,34 +1042,47 @@
         return { ramGB: 1024, dimmCount: Math.min(16, maxDimmSlots) };
     }
 
+    /* N+1 HIGH AVAILABILITY ENFORCED HARDWARE EVALUATOR */
     function evaluateHardware(tmpl) {
-        const nodesByCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
-        let requiredNodes = Math.max(nodesByCPU, 2);
+        // Step 1: Compute required nodes considering N+1 HA for CPU Cores
+        let rawActiveNodesForCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
+        let requiredNodesByCPU = Math.max(rawActiveNodesForCPU + 1, 2);
+        let requiredNodes = requiredNodesByCPU;
 
-        let totalRamPerNode = Math.ceil(globalCalculatedRAM / requiredNodes);
-        let useTiering = totalRamPerNode > 256 && globalCalculatedNVMeRAM > 0;
+        // Active survivable nodes in case 1 node fails (N - 1)
+        let activeNodes = Math.max(requiredNodes - 1, 1);
+
+        // Step 2: Evaluate RAM & NVMe Tiering requirements under N-1 active nodes
+        let totalRamPerActiveNode = Math.ceil(globalCalculatedRAM / activeNodes);
+        let useTiering = totalRamPerActiveNode > 256 && globalCalculatedNVMeRAM > 0;
 
         let nodesByNVMeTier = 1;
         if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
             const nvmeSizeGB = nvmeSizeTB * 1024;
-            const nvmeRamNeededPerNode = Math.ceil(globalCalculatedNVMeRAM / requiredNodes);
-            nodesByNVMeTier = Math.ceil(nvmeRamNeededPerNode / nvmeSizeGB);
+            const nvmeRamNeededPerActiveNode = Math.ceil(globalCalculatedNVMeRAM / activeNodes);
+            
+            let activeNodesForNVMe = Math.ceil(nvmeRamNeededPerActiveNode / nvmeSizeGB);
+            nodesByNVMeTier = activeNodesForNVMe + 1; // Add 1 for N+1 HA
             requiredNodes = Math.max(requiredNodes, nodesByNVMeTier);
         }
 
-        totalRamPerNode = Math.ceil(globalCalculatedRAM / requiredNodes);
-        useTiering = totalRamPerNode > 256 && globalCalculatedNVMeRAM > 0;
+        // Recalculate active nodes after full HA evaluation
+        activeNodes = Math.max(requiredNodes - 1, 1);
 
-        let dramNeededPerNode = useTiering ? Math.ceil(globalCalculatedDRAM / requiredNodes) : totalRamPerNode;
-        const ramSpec = getScaledRAM(dramNeededPerNode, tmpl.dimmSlots);
+        let dramNeededPerActiveNode = useTiering 
+            ? Math.ceil(globalCalculatedDRAM / activeNodes) 
+            : Math.ceil(globalCalculatedRAM / activeNodes);
+
+        const ramSpec = getScaledRAM(dramNeededPerActiveNode, tmpl.dimmSlots);
 
         return {
             nodes: requiredNodes,
-            nodesByCPU: nodesByCPU,
+            nodesByCPU: requiredNodesByCPU,
             nodesByNVMeTier: nodesByNVMeTier,
             useTiering: useTiering,
-            ramSpec: ramSpec
+            ramSpec: ramSpec,
+            activeNodes: activeNodes
         };
     }
 
@@ -1183,6 +1196,7 @@
         const tmpl = getSelectedHardwareConfig();
         const evalRes = evaluateHardware(tmpl);
         const nodes = evalRes.nodes;
+        const activeNodes = evalRes.activeNodes;
         const useTiering = evalRes.useTiering;
 
         globalComputeNodesCount = nodes;
@@ -1191,11 +1205,11 @@
         document.getElementById('stNodeCount').value = nodes;
 
         let limitingFactors = [];
-        if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores");
-        if (useTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Disk Capacity");
+        if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores (N+1 HA)");
+        if (useTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Capacity (N+1 HA)");
 
-        document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" and ") : "Minimum 2 Node Cluster Rule";
-        document.getElementById('outNodes').innerText = nodes + " Nodes";
+        document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" and ") : "Minimum 2 Node Cluster Rule (N+1 HA)";
+        document.getElementById('outNodes').innerText = `${nodes} Nodes (${activeNodes} Active + 1 HA Failover)`;
         document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores, ${tmpl.totalCores} Total Cores per server`;
         document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x 64GB DIMMs`;
 
@@ -1211,7 +1225,7 @@
         const tieringRow = document.getElementById('tieringDiskNodeRow');
         if (useTiering) {
             const nvmeSizeTB = parseFloat(document.getElementById('nvmeSizeTB').value) || 1.92;
-            const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / nodes);
+            const tieredRamPerNode = Math.ceil(globalCalculatedNVMeRAM / activeNodes);
             document.getElementById('outPerNodeTieringDisk').innerText = 
                 `1 x ${nvmeSizeTB} TB NVMe SSD consumes 1 slot per server provides additional ${tieredRamPerNode} GB from this Disk`;
             tieringRow.style.display = 'flex';
@@ -1255,8 +1269,8 @@
 
         const nodeNoteElement = document.getElementById('nodeNote');
         nodeNoteElement.innerHTML = (nodes === 2) 
-            ? "<strong>2 Node Cluster Deployment Notice:</strong> Requires an external Witness Node." 
-            : "<strong>System Buffer:</strong> Calculations include a 20% system overhead buffer.";
+            ? "<strong>2 Node Cluster Deployment Notice:</strong> Requires an external Witness Node. Sized so 1 Node can run 100% of workloads upon failure." 
+            : `<strong>N+1 High Availability Guaranteed:</strong> Sized across ${nodes} nodes so that if 1 node fails, the remaining ${activeNodes} nodes handle 100% of workload without degradation.`;
 
         renderTopologyDiagram(nodes);
         calculateStorageOnly();
@@ -1614,7 +1628,6 @@
         const element = document.getElementById('exportPdfArea');
         const clone = element.cloneNode(true);
         
-        // Remove interactive upload, remove buttons and controls
         clone.querySelectorAll('[data-html2canvas-ignore="true"]').forEach(el => el.remove());
 
         const htmlHeader = `
