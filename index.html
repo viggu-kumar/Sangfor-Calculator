@@ -184,7 +184,7 @@
             border-top: 5px solid var(--storage-theme);
         }
 
-        .topology-wrapper, .license-wrapper {
+        .topology-wrapper, .license-wrapper, .disclaimer-wrapper {
             max-width: 1600px;
             margin: 0 auto 20px auto;
             padding: 0 20px;
@@ -205,6 +205,18 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             padding: 25px;
             border-top: 5px solid var(--license-theme);
+        }
+
+        .disclaimer-banner {
+            background-color: #fff8e6;
+            border: 1px solid #ffe08a;
+            border-left: 5px solid #e6a100;
+            color: #5c4300;
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
 
         h2, h3 { color: var(--primary); margin-top: 0; }
@@ -298,11 +310,11 @@
         .license-summary-card h3 { color: var(--license-theme); margin-bottom: 12px; }
         .license-badge { background-color: var(--license-theme); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
 
-        footer { text-align: center; font-size: 0.8rem; color: #666; margin-top: 30px; }
+        footer { text-align: center; font-size: 0.8rem; color: #666; margin-top: 20px; }
 
         @media (max-width: 1100px) {
             .main-wrapper { flex-direction: column; padding: 0 10px; }
-            .left-panel, .right-panel, .topology-wrapper, .license-wrapper { width: 100%; box-sizing: border-box; }
+            .left-panel, .right-panel, .topology-wrapper, .license-wrapper, .disclaimer-wrapper { width: 100%; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -475,14 +487,14 @@
                                 <option value="2cpu_12core">Sangfor Server: 2 CPU x 12 Cores, 24 Cores total (Min 128 GB Base Memory)</option>
                                 <option value="2cpu_16core">Sangfor Server: 2 CPU x 16 Cores, 32 Cores total (Min 128 GB Base Memory)</option>
                                 <option value="2cpu_32core" selected>Sangfor Server: 2 CPU x 32 Cores, 64 Cores total (Min 128 GB Base Memory)</option>
-                                <option value="custom">-- Custom / 3rd-Party Hardware Specification (Allows 64 GB Memory) --</option>
+                                <option value="custom">-- Custom / 3rd-Party Hardware Specification (Custom CPU & DRAM) --</option>
                             </select>
                         </div>
                     </div>
 
                     <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
                         <div class="custom-hint">
-                            <strong>3rd-Party / Custom Hardware Mode:</strong> Allows flexible socket/core counts and lower minimum memory configurations (such as 64 GB DRAM) if supported by your chosen hardware vendor.
+                            <strong>3rd-Party / Custom Hardware Mode:</strong> Enter custom socket counts, core counts, and any specific DRAM size per node (e.g., 64 GB, 96 GB, 192 GB, 384 GB, 768 GB) supported by your chosen hardware vendor.
                         </div>
                         <div class="grid">
                             <div class="form-group">
@@ -497,13 +509,8 @@
                                 <input type="number" id="customCores" value="32" min="1" step="1" oninput="recalculateHardware()">
                             </div>
                             <div class="form-group">
-                                <label for="customMinRam">Minimum Base DRAM per Node (GB)</label>
-                                <select id="customMinRam" onchange="recalculateHardware()">
-                                    <option value="64" selected>64 GB (3rd-Party Entry)</option>
-                                    <option value="128">128 GB (Standard)</option>
-                                    <option value="256">256 GB</option>
-                                    <option value="512">512 GB</option>
-                                </select>
+                                <label for="customMinRam">DRAM per Node (GB)</label>
+                                <input type="number" id="customMinRam" value="64" min="16" step="8" placeholder="e.g., 64, 96, 128, 384" oninput="recalculateHardware()">
                             </div>
                         </div>
                     </div>
@@ -729,6 +736,13 @@
         </div>
     </div>
 
+    <!-- REFERENCE DISCLAIMER BANNER -->
+    <div class="disclaimer-wrapper">
+        <div class="disclaimer-banner">
+            <strong>Disclaimer:</strong> This sizing tool is provided for architectural reference and preliminary estimation purposes only. Before finalizing hardware specifications, BOM configurations, or commercial procurement, please get in touch with authorized <strong>Sangfor Representatives</strong> to validate and cross-confirm the final solution design.
+        </div>
+    </div>
+
     <footer>
         <span>Generated by Sangfor HCI Architecture Sizing Tool · Designed by Vignesh</span>
     </footer>
@@ -747,10 +761,10 @@
 
     // Sangfor Standard Server Templates enforce a 128 GB default minimum base memory
     const TEMPLATES = {
-        '1cpu_16core': { name: 'Sangfor Server: 1 CPU x 16 Cores', cpus: 1, coresPerCpu: 16, totalCores: 16, dimmSlots: 16, minRamGB: 128 },
-        '2cpu_12core': { name: 'Sangfor Server: 2 CPU x 12 Cores', cpus: 2, coresPerCpu: 12, totalCores: 24, dimmSlots: 32, minRamGB: 128 },
-        '2cpu_16core': { name: 'Sangfor Server: 2 CPU x 16 Cores', cpus: 2, coresPerCpu: 16, totalCores: 32, dimmSlots: 32, minRamGB: 128 },
-        '2cpu_32core': { name: 'Sangfor Server: 2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32, minRamGB: 128 }
+        '1cpu_16core': { name: 'Sangfor Server: 1 CPU x 16 Cores', cpus: 1, coresPerCpu: 16, totalCores: 16, dimmSlots: 16, minRamGB: 128, isCustom: false },
+        '2cpu_12core': { name: 'Sangfor Server: 2 CPU x 12 Cores', cpus: 2, coresPerCpu: 12, totalCores: 24, dimmSlots: 32, minRamGB: 128, isCustom: false },
+        '2cpu_16core': { name: 'Sangfor Server: 2 CPU x 16 Cores', cpus: 2, coresPerCpu: 16, totalCores: 32, dimmSlots: 32, minRamGB: 128, isCustom: false },
+        '2cpu_32core': { name: 'Sangfor Server: 2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32, minRamGB: 128, isCustom: false }
     };
 
     const HDD_SIZES_TB = [16, 12, 10, 8];
@@ -1094,32 +1108,44 @@
         if (selectedKey === 'custom') {
             const sockets = parseInt(document.getElementById('customSockets').value) || 1;
             const coresPerCpu = parseInt(document.getElementById('customCores').value) || 16;
-            const minRamGB = parseInt(document.getElementById('customMinRam').value) || 64;
+            const customRamGB = parseInt(document.getElementById('customMinRam').value) || 64;
             return {
                 name: `Custom 3rd-Party (${sockets} Socket x ${coresPerCpu} Cores)`,
                 cpus: sockets,
                 coresPerCpu: coresPerCpu,
                 totalCores: sockets * coresPerCpu,
                 dimmSlots: sockets === 1 ? 16 : 32,
-                minRamGB: minRamGB
+                minRamGB: customRamGB,
+                isCustom: true
             };
         } else {
             return TEMPLATES[selectedKey] || TEMPLATES['2cpu_32core'];
         }
     }
 
-    function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots, minRamFloorGB = 128) {
+    function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots, minRamFloorGB = 128, isCustom = false) {
+        if (isCustom) {
+            // In 3rd-party custom mode, use the exact user-specified DRAM per node or scale up in standard 32GB/64GB increments if workload demands more
+            const effectiveRAM = Math.max(requiredRAMPerActiveNode, minRamFloorGB);
+            const finalRamGB = (effectiveRAM === minRamFloorGB) 
+                ? minRamFloorGB 
+                : Math.ceil(effectiveRAM / 32) * 32;
+            const dimmSize = (finalRamGB % 64 === 0) ? 64 : 32;
+            const dimmCount = Math.ceil(finalRamGB / dimmSize);
+            return { ramGB: finalRamGB, dimmCount: dimmCount, dimmSize: dimmSize };
+        }
+
         const effectiveRequiredRAM = Math.max(requiredRAMPerActiveNode, minRamFloorGB);
-        const presets = [64, 128, 256, 512, 1024];
+        const presets = [128, 256, 512, 1024, 2048];
         for (let ram of presets) {
             if (ram >= effectiveRequiredRAM) {
                 const num64GBDimms = Math.ceil(ram / 64);
                 if (num64GBDimms <= maxDimmSlots) {
-                    return { ramGB: ram, dimmCount: num64GBDimms };
+                    return { ramGB: ram, dimmCount: num64GBDimms, dimmSize: 64 };
                 }
             }
         }
-        return { ramGB: 1024, dimmCount: Math.min(16, maxDimmSlots) };
+        return { ramGB: 1024, dimmCount: Math.min(16, maxDimmSlots), dimmSize: 64 };
     }
 
     /* N+1 HIGH AVAILABILITY & PHYSICAL ENCLOSURE DISK SLOT AUTO-SCALING EVALUATOR */
@@ -1142,6 +1168,14 @@
             let activeNodesForNVMe = Math.ceil(nvmeRamNeededPerActiveNode / nvmeSizeGB);
             nodesByNVMeTier = activeNodesForNVMe + 1;
             requiredNodes = Math.max(requiredNodes, nodesByNVMeTier);
+        }
+
+        // If custom 3rd-party DRAM is fixed below workload DRAM without tiering, ensure enough nodes exist to hold DRAM
+        let nodesByDRAM = 1;
+        if (!useTiering && tmpl.isCustom && tmpl.minRamGB > 0) {
+            let activeNodesForDRAM = Math.ceil(globalCalculatedRAM / tmpl.minRamGB);
+            nodesByDRAM = Math.max(activeNodesForDRAM + 1, 2);
+            requiredNodes = Math.max(requiredNodes, nodesByDRAM);
         }
 
         const maxSlotsPerNode = parseInt(document.getElementById('stMaxSlotsPerNode')?.value) || 12;
@@ -1172,11 +1206,12 @@
             ? Math.ceil(globalCalculatedDRAM / activeNodes) 
             : Math.ceil(globalCalculatedRAM / activeNodes);
 
-        const ramSpec = getScaledRAM(dramNeededPerActiveNode, tmpl.dimmSlots, tmpl.minRamGB);
+        const ramSpec = getScaledRAM(dramNeededPerActiveNode, tmpl.dimmSlots, tmpl.minRamGB, tmpl.isCustom);
 
         return {
             nodes: requiredNodes,
             nodesByCPU: requiredNodesByCPU,
+            nodesByDRAM: nodesByDRAM,
             nodesByNVMeTier: nodesByNVMeTier,
             nodesByStorageSlots: nodesByStorageSlots,
             useTiering: useTiering,
@@ -1277,6 +1312,9 @@
 
         let limitingFactors = [];
         if (nodes === evalRes.nodesByCPU) limitingFactors.push("CPU Cores (N+1 HA)");
+        if (tmpl.isCustom && nodes === evalRes.nodesByDRAM && nodes > evalRes.nodesByCPU) {
+            limitingFactors.push(`Custom Node DRAM (${tmpl.minRamGB} GB/Node)`);
+        }
         if (useTiering && nodes === evalRes.nodesByNVMeTier) limitingFactors.push("NVMe Tiering Capacity (N+1 HA)");
         if (nodes === evalRes.nodesByStorageSlots && nodes > evalRes.nodesByCPU) {
             limitingFactors.push(`Physical Disk Enclosure Slots (${maxSlotsPerNode} Slots/Node Limit)`);
@@ -1286,12 +1324,12 @@
         document.getElementById('outNodes').innerText = `${nodes} Nodes (${activeNodes} Active + 1 HA Failover)`;
         document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores, ${tmpl.totalCores} Total Cores per server`;
         
-        const isSangforTemplate = document.getElementById('templateSelect').value !== 'custom';
+        const isSangforTemplate = !tmpl.isCustom;
         const ramBaselineNote = isSangforTemplate 
             ? ` (Sangfor Server 128 GB Base Minimum)` 
-            : ` (3rd-Party Custom ${tmpl.minRamGB} GB Base Minimum)`;
+            : ` (3rd-Party Custom ${tmpl.minRamGB} GB Configured)`;
 
-        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x 64GB DIMMs${ramBaselineNote}`;
+        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x ${evalRes.ramSpec.dimmSize}GB DIMMs${ramBaselineNote}`;
 
         const splitRow = document.getElementById('memorySplitRow');
         if (useTiering) {
@@ -1703,6 +1741,7 @@
                     .result-item { margin-bottom: 6px; }
                     .spec-card { border: 1px solid #b8daff; padding: 10px; background-color: #f8fafd; margin-bottom: 10px; }
                     .note-box { background-color: #f9f9f9; border: 1px solid #d0d0d0; padding: 8px; font-size: 9pt; }
+                    .disclaimer-banner { background-color: #fff8e6; border: 1px solid #ffe08a; padding: 10px; margin-top: 15px; font-size: 9pt; color: #5c4300; }
                 </style>
             </head>
             <body>
