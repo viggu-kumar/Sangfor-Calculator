@@ -28,6 +28,192 @@
             padding: 0 0 20px 0;
         }
 
+        /* AUTHENTICATION GATE OVERLAY */
+        #authOverlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 430px;
+            border-radius: 12px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+            padding: 30px;
+            border-top: 6px solid var(--primary);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .auth-header h2 {
+            margin: 0 0 6px 0;
+            color: #0f2027;
+            font-size: 1.35rem;
+            border: none;
+            padding: 0;
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .auth-alert {
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .auth-alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .auth-alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .auth-alert.info {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            display: block;
+        }
+
+        /* ADMIN PANEL MODAL */
+        #adminModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .admin-modal-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 780px;
+            max-height: 85vh;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-top: 5px solid #e6a100;
+        }
+
+        .admin-modal-header {
+            padding: 16px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-modal-header h3 {
+            margin: 0;
+            color: #0f2027;
+            font-size: 1.15rem;
+        }
+
+        .admin-modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .user-table th {
+            background: #f0f4f8;
+            color: var(--primary);
+            text-align: left;
+            padding: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .user-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-pill {
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .pill-pending { background: #fff3cd; color: #856404; }
+        .pill-approved { background: #d4edda; color: #155724; }
+        .pill-admin { background: #cce5ff; color: #004085; }
+
+        .btn-sm {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        .btn-approve { background: #28a745; color: white; }
+        .btn-approve:hover { background: #218838; }
+        .btn-revoke { background: #dc3545; color: white; }
+        .btn-revoke:hover { background: #c82333; }
+
         /* HEADER BANNER */
         .app-header {
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -52,29 +238,50 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
-        .btn-export-word {
-            background-color: #2b579a;
-            color: white;
+        .btn-header {
             border: none;
-            padding: 8px 18px;
-            font-size: 0.9rem;
+            padding: 8px 15px;
+            font-size: 0.85rem;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             transition: background 0.2s, transform 0.1s;
         }
 
-        .btn-export-word:hover {
-            background-color: #1e3c6e;
-            transform: translateY(-1px);
+        .btn-header:hover { transform: translateY(-1px); }
+
+        .btn-export-word { background-color: #2b579a; color: white; }
+        .btn-export-word:hover { background-color: #1e3c6e; }
+
+        .btn-admin-panel {
+            background-color: #e6a100;
+            color: #1a1a1a;
+            display: none;
+        }
+        .btn-admin-panel:hover { background-color: #cc8e00; }
+
+        .btn-logout {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-logout:hover { background-color: #dc3545; border-color: #dc3545; }
+
+        .pending-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.72rem;
+            margin-left: 2px;
         }
 
         .designer-badge {
@@ -88,8 +295,8 @@
         }
 
         .designer-avatar-container {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: #0056b3;
             border: 2px solid #ffffff;
@@ -102,8 +309,8 @@
         }
 
         .designer-avatar-container svg {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
         }
 
         .designer-text {
@@ -112,14 +319,14 @@
         }
 
         .designer-label {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: #81d4fa;
         }
 
         .designer-name {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #ffffff;
         }
@@ -320,16 +527,100 @@
 </head>
 <body>
 
-<div id="exportPdfArea">
+<!-- AUTHENTICATION GATE OVERLAY -->
+<div id="authOverlay">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Sangfor HCI Sizing Tool</h2>
+            <p>Authorized Access Only · Designed by Vignesh</p>
+        </div>
+
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</div>
+            <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Request Access (Register)</div>
+        </div>
+
+        <div id="authAlertBox" class="auth-alert"></div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginEmail">Email Address</label>
+                <input type="email" id="loginEmail" required placeholder="Enter your registered email">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn-calc" id="btnLoginSubmit">Sign In to Sizer</button>
+        </form>
+
+        <!-- REGISTRATION FORM -->
+        <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="regName">Full Name</label>
+                <input type="text" id="regName" required placeholder="e.g., John Doe">
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Work Email Address</label>
+                <input type="email" id="regEmail" required placeholder="e.g., john@company.com">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Create Password (Min 6 characters)</label>
+                <input type="password" id="regPassword" minlength="6" required placeholder="Create a secure password">
+            </div>
+            <button type="submit" class="btn-calc" style="background-color: var(--accent);" id="btnRegisterSubmit">Submit Access Request</button>
+            <p style="font-size: 0.78rem; color: #666; text-align: center; margin-top: 12px;">
+                Note: After registration, Admin (<strong>Vignesh</strong>) must approve your account before you can sign in.
+            </p>
+        </form>
+    </div>
+</div>
+
+<!-- ADMIN APPROVAL MODAL (VISIBLE ONLY TO VIGNESH) -->
+<div id="adminModal">
+    <div class="admin-modal-card">
+        <div class="admin-modal-header">
+            <h3>User Access Management (Admin: Vignesh)</h3>
+            <button type="button" class="btn-remove" style="font-size: 0.9rem; padding: 6px 12px;" onclick="closeAdminModal()">Close ×</button>
+        </div>
+        <div class="admin-modal-body">
+            <p style="font-size: 0.85rem; color: #555; margin-top: 0;">
+                Approve or revoke access for users who have registered to use the Sangfor HCI Sizing Tool.
+            </p>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                    <tr><td colspan="4" style="text-align:center;">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="exportPdfArea" style="display: none;">
     <!-- HEADER BANNER -->
     <header class="app-header">
         <div class="header-title-box">
             <h1>Sangfor HCI Architecture & Sizing Tool</h1>
         </div>
         <div class="header-actions">
-            <button type="button" class="btn-export-word" onclick="exportToWord()" data-html2canvas-ignore="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <button type="button" class="btn-header btn-admin-panel" id="btnOpenAdminPanel" onclick="openAdminModal()" data-html2canvas-ignore="true">
+                🛡️ Manage Users <span class="pending-badge" id="pendingUserCount" style="display:none;">0</span>
+            </button>
+            <button type="button" class="btn-header btn-export-word" onclick="exportToWord()" data-html2canvas-ignore="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                 Export Word Report
+            </button>
+            <button type="button" class="btn-header btn-logout" onclick="handleLogout()" data-html2canvas-ignore="true">
+                Sign Out
             </button>
             <div class="designer-badge">
                 <div class="designer-avatar-container">
@@ -748,6 +1039,264 @@
     </footer>
 </div>
 
+<!-- FIREBASE AUTHENTICATION & ADMIN APPROVAL MODULE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithEmailAndPassword, 
+        createUserWithEmailAndPassword, 
+        signOut, 
+        onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { 
+        getFirestore, 
+        doc, 
+        getDoc, 
+        setDoc, 
+        updateDoc, 
+        deleteDoc, 
+        collection, 
+        onSnapshot, 
+        query, 
+        orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDoO8heH847fMVhQsPFcNws3eU0AgD8ko0",
+        authDomain: "sangfor-hci-sizer.firebaseapp.com",
+        projectId: "sangfor-hci-sizer",
+        storageBucket: "sangfor-hci-sizer.firebasestorage.app",
+        messagingSenderId: "258649951239",
+        appId: "1:258649951239:web:32f1d43554fd1a30702ea2"
+    };
+
+    const ADMIN_EMAIL = "viggu.kumar@gmail.com";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let unsubscribeUsersListener = null;
+
+    function showAuthAlert(type, message) {
+        const alertBox = document.getElementById('authAlertBox');
+        alertBox.className = `auth-alert ${type}`;
+        alertBox.innerText = message;
+    }
+
+    function clearAuthAlert() {
+        const alertBox = document.getElementById('authAlertBox');
+        alertBox.className = 'auth-alert';
+        alertBox.innerText = '';
+    }
+
+    window.switchAuthTab = function(tab) {
+        clearAuthAlert();
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabRegister = document.getElementById('tabRegister');
+
+        if (tab === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            tabLogin.classList.remove('active');
+            tabRegister.classList.add('active');
+        }
+    };
+
+    window.handleLogin = async function(e) {
+        e.preventDefault();
+        clearAuthAlert();
+        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        const password = document.getElementById('loginPassword').value;
+        const btn = document.getElementById('btnLoginSubmit');
+        btn.disabled = true;
+        btn.innerText = "Verifying...";
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            showAuthAlert('error', `Login Failed: ${err.message}`);
+            btn.disabled = false;
+            btn.innerText = "Sign In to Sizer";
+        }
+    };
+
+    window.handleRegister = async function(e) {
+        e.preventDefault();
+        clearAuthAlert();
+        const fullName = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim().toLowerCase();
+        const password = document.getElementById('regPassword').value;
+        const btn = document.getElementById('btnRegisterSubmit');
+        btn.disabled = true;
+        btn.innerText = "Submitting...";
+
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, "users", cred.user.uid), {
+                name: fullName,
+                email: email,
+                status: "pending",
+                createdAt: new Date().toISOString()
+            });
+
+            await signOut(auth);
+            switchAuthTab('login');
+            showAuthAlert('success', "Registration submitted! Your account is now pending approval by Admin (Vignesh). Please sign in once approved.");
+        } catch (err) {
+            showAuthAlert('error', `Registration Error: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Submit Access Request";
+        }
+    };
+
+    window.handleLogout = async function() {
+        if (unsubscribeUsersListener) {
+            unsubscribeUsersListener();
+            unsubscribeUsersListener = null;
+        }
+        await signOut(auth);
+    };
+
+    window.openAdminModal = function() {
+        document.getElementById('adminModal').style.display = 'flex';
+    };
+
+    window.closeAdminModal = function() {
+        document.getElementById('adminModal').style.display = 'none';
+    };
+
+    window.approveUser = async function(uid) {
+        try {
+            await updateDoc(doc(db, "users", uid), { status: "approved" });
+        } catch (err) {
+            alert("Error approving user: " + err.message);
+        }
+    };
+
+    window.revokeUser = async function(uid) {
+        try {
+            await updateDoc(doc(db, "users", uid), { status: "pending" });
+        } catch (err) {
+            alert("Error revoking user: " + err.message);
+        }
+    };
+
+    window.deleteUserRecord = async function(uid, email) {
+        if (!confirm(`Remove access record for ${email}?`)) return;
+        try {
+            await deleteDoc(doc(db, "users", uid));
+        } catch (err) {
+            alert("Error deleting user record: " + err.message);
+        }
+    };
+
+    function startAdminUsersListener() {
+        const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+        unsubscribeUsersListener = onSnapshot(q, (snapshot) => {
+            const tbody = document.getElementById('adminUsersTableBody');
+            let pendingCount = 0;
+            let rowsHtml = '';
+
+            snapshot.forEach((docSnap) => {
+                const u = docSnap.data();
+                const uid = docSnap.id;
+                if (u.email === ADMIN_EMAIL) return;
+
+                if (u.status === 'pending') pendingCount++;
+
+                const badgeClass = u.status === 'approved' ? 'pill-approved' : 'pill-pending';
+                const actionButtons = u.status === 'pending'
+                    ? `<button class="btn-sm btn-approve" onclick="approveUser('${uid}')">Approve</button>
+                       <button class="btn-sm btn-revoke" onclick="deleteUserRecord('${uid}', '${u.email}')">Reject</button>`
+                    : `<button class="btn-sm btn-revoke" onclick="revokeUser('${uid}')">Revoke Access</button>`;
+
+                rowsHtml += `
+                    <tr>
+                        <td><strong>${u.name || 'User'}</strong></td>
+                        <td>${u.email}</td>
+                        <td><span class="status-pill ${badgeClass}">${u.status}</span></td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            });
+
+            if (!rowsHtml) {
+                rowsHtml = `<tr><td colspan="4" style="text-align:center; color:#666;">No external users registered yet.</td></tr>`;
+            }
+
+            tbody.innerHTML = rowsHtml;
+
+            const badge = document.getElementById('pendingUserCount');
+            if (pendingCount > 0) {
+                badge.innerText = pendingCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        const authOverlay = document.getElementById('authOverlay');
+        const mainApp = document.getElementById('exportPdfArea');
+        const adminBtn = document.getElementById('btnOpenAdminPanel');
+        const loginBtn = document.getElementById('btnLoginSubmit');
+
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.innerText = "Sign In to Sizer";
+        }
+
+        if (!user) {
+            authOverlay.style.display = 'flex';
+            mainApp.style.display = 'none';
+            adminBtn.style.display = 'none';
+            return;
+        }
+
+        const userEmail = (user.email || '').toLowerCase();
+
+        // Check if Master Admin (Vignesh)
+        if (userEmail === ADMIN_EMAIL.toLowerCase()) {
+            authOverlay.style.display = 'none';
+            mainApp.style.display = 'block';
+            adminBtn.style.display = 'flex';
+            startAdminUsersListener();
+            if (typeof window.calculateSizing === 'function') window.calculateSizing();
+            return;
+        }
+
+        // Check approval status for regular registered users
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().status === "approved") {
+                authOverlay.style.display = 'none';
+                mainApp.style.display = 'block';
+                adminBtn.style.display = 'none';
+                if (typeof window.calculateSizing === 'function') window.calculateSizing();
+            } else {
+                await signOut(auth);
+                switchAuthTab('login');
+                showAuthAlert('info', "Your account is still pending approval by Admin (Vignesh). Please try again once approved.");
+            }
+        } catch (err) {
+            await signOut(auth);
+            showAuthAlert('error', "Access verification failed: " + err.message);
+        }
+    });
+</script>
+
+<!-- SIZER CORE LOGIC -->
 <script>
     let globalTargetUsableStorageTB = 23.44;
     let globalComputeNodesCount = 3;
@@ -770,7 +1319,6 @@
     const HDD_SIZES_TB = [16, 12, 10, 8];
     const SSD_SIZES_TB = [7.68, 3.84, 1.92, 0.96];
 
-    /* SHARED SSD CACHE TIERING ENGINE (ENSURES 100% IDENTICAL LOGIC ACROSS LEFT & RIGHT PANELS) */
     function computeHybridCacheOptions(rawHddPerNodeTB, hddCountPerNode, maxAvailableCacheSlots = 6) {
         const target15PctTB = rawHddPerNodeTB * 0.15;
         const target10PctTB = rawHddPerNodeTB * 0.10;
@@ -824,7 +1372,6 @@
         };
     }
 
-    /* RVTOOLS FILE UPLOADER ENGINE WITH ROBUST MEMORY PARSING */
     function handleRVToolsUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -912,7 +1459,6 @@
         reader.readAsArrayBuffer(file);
     }
 
-    /* DROPDOWN & SLOT CHANGE SYNC HANDLERS */
     function onWorkloadArchChange() {
         const val = document.getElementById('workloadArch').value;
         document.getElementById('stArchitecture').value = val;
@@ -1015,7 +1561,7 @@
         });
     }
 
-    function calculateSizing() {
+    window.calculateSizing = function() {
         const modeEl = document.querySelector('input[name="inputMode"]:checked');
         const mode = modeEl ? modeEl.value : 'groups';
 
@@ -1084,7 +1630,7 @@
         document.getElementById('outVMStorageReq').innerText = totalVMStorageTBWithOverhead.toFixed(2) + " TB";
 
         recalculateHardware();
-    }
+    };
 
     function toggleCustomInputs() {
         const select = document.getElementById('templateSelect');
@@ -1125,7 +1671,6 @@
 
     function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots, minRamFloorGB = 128, isCustom = false) {
         if (isCustom) {
-            // In 3rd-party custom mode, use the exact user-specified DRAM per node or scale up in standard 32GB/64GB increments if workload demands more
             const effectiveRAM = Math.max(requiredRAMPerActiveNode, minRamFloorGB);
             const finalRamGB = (effectiveRAM === minRamFloorGB) 
                 ? minRamFloorGB 
@@ -1148,7 +1693,6 @@
         return { ramGB: 1024, dimmCount: Math.min(16, maxDimmSlots), dimmSize: 64 };
     }
 
-    /* N+1 HIGH AVAILABILITY & PHYSICAL ENCLOSURE DISK SLOT AUTO-SCALING EVALUATOR */
     function evaluateHardware(tmpl) {
         let rawActiveNodesForCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
         let requiredNodesByCPU = Math.max(rawActiveNodesForCPU + 1, 2);
@@ -1170,7 +1714,6 @@
             requiredNodes = Math.max(requiredNodes, nodesByNVMeTier);
         }
 
-        // If custom 3rd-party DRAM is fixed below workload DRAM without tiering, ensure enough nodes exist to hold DRAM
         let nodesByDRAM = 1;
         if (!useTiering && tmpl.isCustom && tmpl.minRamGB > 0) {
             let activeNodesForDRAM = Math.ceil(globalCalculatedRAM / tmpl.minRamGB);
@@ -1221,7 +1764,6 @@
         };
     }
 
-    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE (UNIFIED WITH RIGHT-SIDE CACHE LOGIC) */
     function autoCalculateDisks(nodesCount, targetUsableTB, arch, isNvmeTieringActive, maxSlotsPerNode = 12) {
         const copyPolicy = parseInt(document.getElementById('stCopyPolicy')?.value) || 2;
         const rawNeededTB = (targetUsableTB * copyPolicy) / 0.83;
@@ -1707,7 +2249,6 @@
         document.getElementById('outLicSupportTerm').innerText = termYearsText;
     }
 
-    /* DIRECT INLINE WORD (.DOC) EXPORT ENGINE */
     function exportToWord() {
         const element = document.getElementById('exportPdfArea');
         const clone = element.cloneNode(true);
