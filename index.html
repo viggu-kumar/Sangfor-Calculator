@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sangfor HCI Architecture & Sizing Tool</title>
-    <!-- SheetJS for RVTools Excel parsing -->
+    <!-- SheetJS for RVTools & Manual Excel Template parsing/generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -331,34 +331,70 @@
             color: #ffffff;
         }
 
-        /* RVTOOLS UPLOADER BOX */
-        .upload-box {
+        /* EXCEL IMPORT & TEMPLATE SECTION */
+        .excel-import-wrapper {
             background: #eef7ff;
             border: 2px dashed #0056b3;
             border-radius: 8px;
-            padding: 15px;
-            text-align: center;
+            padding: 14px;
             margin-bottom: 15px;
+        }
+
+        .excel-actions-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-excel-upload {
+            flex: 1;
+            min-width: 220px;
+            background: #0056b3;
+            color: #ffffff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
             cursor: pointer;
+            text-align: center;
             transition: background 0.2s;
         }
 
-        .upload-box:hover {
-            background: #e3f2fd;
+        .btn-excel-upload:hover {
+            background: #003d80;
         }
 
-        .upload-box label {
-            cursor: pointer;
-            font-size: 0.85rem;
+        .btn-excel-template {
+            background: #ffffff;
             color: #0056b3;
+            border: 1.5px solid #0056b3;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-size: 0.82rem;
             font-weight: bold;
-            display: block;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-excel-template:hover {
+            background: #d9ecff;
+        }
+
+        .excel-hint-text {
+            font-size: 0.78rem;
+            color: #445566;
+            margin-top: 8px;
+            line-height: 1.4;
         }
 
         .upload-status {
             font-size: 0.8rem;
             color: #28a745;
-            margin-top: 6px;
+            margin-top: 8px;
             font-weight: 600;
         }
 
@@ -649,12 +685,20 @@
                     <button type="button" class="btn-add" id="btnAddVmGroup" onclick="addVmGroup()" data-html2canvas-ignore="true">+ Add VM Group</button>
                 </div>
 
-                <!-- RVTools Excel Uploader -->
-                <div class="upload-box" id="uploadDropZone" onclick="document.getElementById('rvToolsFileInput').click();" data-html2canvas-ignore="true">
-                    <label for="rvToolsFileInput">
-                        📁 Import Workloads from RVTools Excel Export (.xlsx / .xls)
-                    </label>
-                    <input type="file" id="rvToolsFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleRVToolsUpload(event)">
+                <!-- RVTOOLS & MANUAL EXCEL TEMPLATE IMPORTER -->
+                <div class="excel-import-wrapper" data-html2canvas-ignore="true">
+                    <div class="excel-actions-row">
+                        <button type="button" class="btn-excel-upload" onclick="document.getElementById('excelWorkloadFileInput').click();">
+                            📁 Import RVTools or Manual Excel (.xlsx / .xls)
+                        </button>
+                        <button type="button" class="btn-excel-template" onclick="downloadManualExcelTemplate()">
+                            📥 Download Manual Excel Template
+                        </button>
+                    </div>
+                    <input type="file" id="excelWorkloadFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelWorkloadUpload(event)">
+                    <div class="excel-hint-text">
+                        Supports standard <strong>RVTools exports</strong> (vInfo tab in MiB) or the <strong>Manual Excel Template</strong> (Columns: <em>Virtual Machine Name, vCPUs, Memory (GB), Total Storage (GB)</em>).
+                    </div>
                     <div id="uploadStatusText" class="upload-status"></div>
                 </div>
 
@@ -1039,7 +1083,7 @@
     </footer>
 </div>
 
-<!-- FIREBASE AUTHENTICATION & ADMIN APPROVAL MODULE -->
+<!-- FIREBASE AUTHENTICATION, ADMIN APPROVAL & 30-MIN IDLE LOGOFF MODULE -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { 
@@ -1079,7 +1123,7 @@
 
     let unsubscribeUsersListener = null;
     let idleTimer = null;
-    const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes inactivity timeout
 
     function resetIdleTimer() {
         if (!auth.currentUser) return;
@@ -1093,7 +1137,6 @@
         }, IDLE_TIMEOUT_MS);
     }
 
-    // Listen for user activity to reset the 30-minute countdown
     ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
         document.addEventListener(evt, resetIdleTimer, { passive: true });
     });
@@ -1179,6 +1222,7 @@
     };
 
     window.handleLogout = async function() {
+        clearTimeout(idleTimer);
         if (unsubscribeUsersListener) {
             unsubscribeUsersListener();
             unsubscribeUsersListener = null;
@@ -1277,6 +1321,7 @@
         }
 
         if (!user) {
+            clearTimeout(idleTimer);
             authOverlay.style.display = 'flex';
             mainApp.style.display = 'none';
             adminBtn.style.display = 'none';
@@ -1290,6 +1335,7 @@
             authOverlay.style.display = 'none';
             mainApp.style.display = 'block';
             adminBtn.style.display = 'flex';
+            resetIdleTimer();
             startAdminUsersListener();
             if (typeof window.calculateSizing === 'function') window.calculateSizing();
             return;
@@ -1302,6 +1348,7 @@
                 authOverlay.style.display = 'none';
                 mainApp.style.display = 'block';
                 adminBtn.style.display = 'none';
+                resetIdleTimer();
                 if (typeof window.calculateSizing === 'function') window.calculateSizing();
             } else {
                 await signOut(auth);
@@ -1391,13 +1438,44 @@
         };
     }
 
-    function handleRVToolsUpload(event) {
+    /* DOWNLOAD MANUAL EXCEL WORKLOAD TEMPLATE */
+    function downloadManualExcelTemplate() {
+        const templateRows = [
+            {
+                "Virtual Machine Name": "APP-SERVER-01",
+                "vCPUs": 4,
+                "Memory (GB)": 16,
+                "Total Storage (GB)": 200
+            },
+            {
+                "Virtual Machine Name": "DB-SERVER-01",
+                "vCPUs": 8,
+                "Memory (GB)": 32,
+                "Total Storage (GB)": 500
+            }
+        ];
+
+        const worksheet = XLSX.utils.json_to_sheet(templateRows);
+        worksheet["!cols"] = [
+            { wch: 26 },
+            { wch: 12 },
+            { wch: 16 },
+            { wch: 22 }
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "VM_Workloads");
+        XLSX.writeFile(workbook, "Sangfor_HCI_Manual_Workload_Template.xlsx");
+    }
+
+    /* UNIFIED EXCEL PARSER: HANDLES BOTH RVTOOLS (MiB) & MANUAL EXCEL TEMPLATE (GB) */
+    function handleExcelWorkloadUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
 
         const statusEl = document.getElementById('uploadStatusText');
         statusEl.style.color = '#0056b3';
-        statusEl.innerText = "Parsing RVTools file...";
+        statusEl.innerText = "Parsing Excel workload file...";
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -1414,29 +1492,40 @@
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 if (!jsonData || jsonData.length < 2) {
-                    throw new Error("Sheet appears to be empty or missing data rows.");
+                    throw new Error("Excel sheet appears to be empty or missing data rows.");
                 }
 
                 const headers = jsonData[0].map(h => String(h || '').trim().toLowerCase());
 
-                const vmColIdx = headers.findIndex(h => h === 'vm' || h === 'vm name' || h.includes('vmname'));
-                const cpuColIdx = headers.findIndex(h => h === 'cpus' || h === 'vcpu' || h === 'vcpus' || h.includes('cpu'));
-                
+                const vmColIdx = headers.findIndex(h => 
+                    h === 'vm' || h === 'vm name' || h === 'virtual machine name' || h.includes('vmname') || h.includes('virtual machine')
+                );
+                const cpuColIdx = headers.findIndex(h => 
+                    h === 'cpus' || h === 'vcpu' || h === 'vcpus' || h.includes('cpu')
+                );
                 const ramColIdx = headers.findIndex(h => 
                     (h.includes('memory') || h.includes('ram') || h.includes('size mb') || h.includes('size mib') || h === 'mem' || h === 'mb') &&
                     !h.includes('disk') && !h.includes('capacity') && !h.includes('provisioned')
                 );
-
-                const diskColIdx = headers.findIndex(h => h.includes('total disk capacity mib') || h.includes('capacity mib') || h.includes('disk capacity') || h.includes('in use mib'));
+                const diskColIdx = headers.findIndex(h => 
+                    h.includes('total storage') || h.includes('storage') || h.includes('total disk capacity') || h.includes('capacity mib') || h.includes('disk capacity') || h.includes('in use mib')
+                );
 
                 if (vmColIdx === -1 || cpuColIdx === -1 || ramColIdx === -1) {
-                    throw new Error("Could not detect standard RVTools columns (VM, CPUs, Memory).");
+                    throw new Error("Could not detect required columns (Virtual Machine Name, vCPUs, Memory, Total Storage).");
                 }
+
+                const ramHeader = headers[ramColIdx] || '';
+                const diskHeader = diskColIdx !== -1 ? (headers[diskColIdx] || '') : '';
+
+                // Detect units: Manual template uses GB, RVTools uses MiB/MB
+                const isRamInGB = ramHeader.includes('(gb)') || ramHeader.includes(' gb') || (!ramHeader.includes('mb') && !ramHeader.includes('mib') && targetSheetName.toLowerCase() !== 'vinfo');
+                const isDiskInGB = diskHeader.includes('(gb)') || diskHeader.includes(' gb') || (!diskHeader.includes('mb') && !diskHeader.includes('mib') && targetSheetName.toLowerCase() !== 'vinfo');
 
                 let totalVMs = 0;
                 let totalVCPUs = 0;
-                let totalRAMMB = 0;
-                let totalStorageMB = 0;
+                let rawRAMSum = 0;
+                let rawStorageSum = 0;
 
                 for (let i = 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
@@ -1451,13 +1540,13 @@
                         const disk = diskColIdx !== -1 ? (parseFloat(String(row[diskColIdx] || '0').replace(/,/g, '')) || 0) : 0;
 
                         totalVCPUs += cpus;
-                        totalRAMMB += ram;
-                        totalStorageMB += disk;
+                        rawRAMSum += ram;
+                        rawStorageSum += disk;
                     }
                 }
 
-                const totalRAMGB = Math.ceil(totalRAMMB / 1024);
-                const totalStorageGB = Math.ceil(totalStorageMB / 1024);
+                const totalRAMGB = isRamInGB ? Math.ceil(rawRAMSum) : Math.ceil(rawRAMSum / 1024);
+                const totalStorageGB = isDiskInGB ? Math.ceil(rawStorageSum) : Math.ceil(rawStorageSum / 1024);
 
                 document.getElementById('directVMCount').value = totalVMs;
                 document.getElementById('directTotalVCPU').value = totalVCPUs;
@@ -1467,12 +1556,15 @@
                 document.getElementById('radioModeDirect').checked = true;
                 toggleInputMode();
 
+                const sourceTypeLabel = (isRamInGB && isDiskInGB) ? "Manual Excel Template" : "RVTools Export";
                 statusEl.style.color = '#28a745';
-                statusEl.innerText = `Successfully loaded ${totalVMs} VMs, ${totalVCPUs} vCPUs, ${totalRAMGB} GB RAM, and ${totalStorageGB} GB Storage!`;
+                statusEl.innerText = `Loaded via ${sourceTypeLabel}: ${totalVMs} VMs, ${totalVCPUs} vCPUs, ${totalRAMGB} GB RAM, and ${totalStorageGB} GB Storage!`;
             } catch (err) {
                 console.error(err);
                 statusEl.style.color = '#dc3545';
-                statusEl.innerText = `Error parsing RVTools: ${err.message}`;
+                statusEl.innerText = `Error parsing Excel file: ${err.message}`;
+            } finally {
+                event.target.value = '';
             }
         };
         reader.readAsArrayBuffer(file);
