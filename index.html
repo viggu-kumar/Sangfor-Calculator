@@ -1078,6 +1078,25 @@
     const db = getFirestore(app);
 
     let unsubscribeUsersListener = null;
+    let idleTimer = null;
+    const IDLE_TIMEOUT_MS = 10 * 1000; // 30 minutes in milliseconds
+
+    function resetIdleTimer() {
+        if (!auth.currentUser) return;
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(async () => {
+            if (auth.currentUser) {
+                await window.handleLogout();
+                switchAuthTab('login');
+                showAuthAlert('info', 'You were automatically signed out due to 30 minutes of inactivity.');
+            }
+        }, IDLE_TIMEOUT_MS);
+    }
+
+    // Listen for user activity to reset the 30-minute countdown
+    ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
 
     function showAuthAlert(type, message) {
         const alertBox = document.getElementById('authAlertBox');
