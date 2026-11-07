@@ -252,14 +252,15 @@
         .btn-calc:hover { background-color: #003d80; }
 
         .results { background-color: #e9f3ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 0 4px 4px 0; margin-top: 15px; }
-        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
-        .result-item span.value { font-weight: bold; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; gap: 12px; }
+        .result-item span.value { font-weight: bold; text-align: right; }
         .recommendation-badge { background-color: #28a745; color: white; padding: 3px 8px; font-size: 0.75rem; border-radius: 12px; font-weight: bold; text-transform: uppercase; }
         .note-box { font-size: 0.85rem; color: #555; background: #fff; padding: 10px; border-radius: 4px; margin-top: 12px; border: 1px solid #d0d0d0; }
         .ratio-input-wrapper { display: flex; align-items: center; gap: 5px; }
         .ratio-prefix { font-weight: bold; color: #555; }
         .spec-card { background: white; border: 1px solid #b8daff; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
         .custom-inputs-box { background: #fff3cd; border: 1px solid #ffeba8; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .custom-hint { font-size: 0.78rem; color: #856404; margin-bottom: 10px; line-height: 1.4; }
 
         .target-storage-banner { background-color: #e6f4ea; border: 1px solid #a8dab5; border-left: 5px solid #28a745; border-radius: 6px; padding: 12px 15px; margin-bottom: 15px; }
         .target-title { font-size: 0.85rem; color: #2e7d32; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -463,23 +464,26 @@
                 <div id="hardwareSection" style="display: block;">
                     <div class="section-title">
                         <span>3. Recommended Server Hardware</span>
-                        <span id="bestTag" class="recommendation-badge">Optimal Pick</span>
+                        <span id="bestTag" class="recommendation-badge">Sangfor Appliance</span>
                     </div>
 
                     <div class="grid" style="margin-bottom: 15px;">
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="templateSelect">Hardware Template:</label>
+                            <label for="templateSelect">Hardware Template (Sangfor Standard Appliances vs 3rd-Party Custom):</label>
                             <select id="templateSelect" onchange="toggleCustomInputs()">
-                                <option value="1cpu_16core">1 CPU x 16 Cores</option>
-                                <option value="2cpu_12core">2 CPU x 12 Cores, 24 Cores total</option>
-                                <option value="2cpu_16core">2 CPU x 16 Cores, 32 Cores total</option>
-                                <option value="2cpu_32core" selected>2 CPU x 32 Cores, 64 Cores total</option>
-                                <option value="custom">-- Custom Server Specification --</option>
+                                <option value="1cpu_16core">Sangfor Server: 1 CPU x 16 Cores (Min 128 GB Base Memory)</option>
+                                <option value="2cpu_12core">Sangfor Server: 2 CPU x 12 Cores, 24 Cores total (Min 128 GB Base Memory)</option>
+                                <option value="2cpu_16core">Sangfor Server: 2 CPU x 16 Cores, 32 Cores total (Min 128 GB Base Memory)</option>
+                                <option value="2cpu_32core" selected>Sangfor Server: 2 CPU x 32 Cores, 64 Cores total (Min 128 GB Base Memory)</option>
+                                <option value="custom">-- Custom / 3rd-Party Hardware Specification (Allows 64 GB Memory) --</option>
                             </select>
                         </div>
                     </div>
 
                     <div id="customInputsContainer" class="custom-inputs-box" style="display: none;">
+                        <div class="custom-hint">
+                            <strong>3rd-Party / Custom Hardware Mode:</strong> Allows flexible socket/core counts and lower minimum memory configurations (such as 64 GB DRAM) if supported by your chosen hardware vendor.
+                        </div>
                         <div class="grid">
                             <div class="form-group">
                                 <label for="customSockets">Sockets per Server</label>
@@ -491,6 +495,15 @@
                             <div class="form-group">
                                 <label for="customCores">Cores per Socket</label>
                                 <input type="number" id="customCores" value="32" min="1" step="1" oninput="recalculateHardware()">
+                            </div>
+                            <div class="form-group">
+                                <label for="customMinRam">Minimum Base DRAM per Node (GB)</label>
+                                <select id="customMinRam" onchange="recalculateHardware()">
+                                    <option value="64" selected>64 GB (3rd-Party Entry)</option>
+                                    <option value="128">128 GB (Standard)</option>
+                                    <option value="256">256 GB</option>
+                                    <option value="512">512 GB</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -533,7 +546,10 @@
                         </div>
                         <div class="result-item"><span>Cluster Capacity Disks:</span><span class="value" id="outAutoDiskClusterRec" style="color: var(--storage-theme);">6 x 16 TB HDD across cluster</span></div>
                         <div class="result-item"><span>Per Node Allocation:</span><span class="value" id="outAutoDiskPerNodeRec">2 HDDs per Server across 3 Nodes</span></div>
-                        <div class="result-item" id="outAutoCacheRow" style="display: none;"><span>SSD Cache Recommendation:</span><span class="value" id="outAutoCacheRec" style="color: #0d47a1;">1 x 1.92 TB SSD Cache per server</span></div>
+                        <div class="result-item" id="outAutoCacheRow" style="display: none; flex-direction: column; align-items: stretch; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cce5e5;">
+                            <span style="font-weight: bold; color: #0d47a1; margin-bottom: 4px;">SSD Cache Recommendation Per Node:</span>
+                            <div id="outAutoCacheRec" style="font-size: 0.85rem; color: #0d47a1; line-height: 1.45;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -729,15 +745,70 @@
     let globalCalculatedDRAM = 0;
     let globalCalculatedNVMeRAM = 0;
 
+    // Sangfor Standard Server Templates enforce a 128 GB default minimum base memory
     const TEMPLATES = {
-        '1cpu_16core': { name: '1 CPU x 16 Cores', cpus: 1, coresPerCpu: 16, totalCores: 16, dimmSlots: 16 },
-        '2cpu_12core': { name: '2 CPU x 12 Cores', cpus: 2, coresPerCpu: 12, totalCores: 24, dimmSlots: 32 },
-        '2cpu_16core': { name: '2 CPU x 16 Cores', cpus: 2, coresPerCpu: 16, totalCores: 32, dimmSlots: 32 },
-        '2cpu_32core': { name: '2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32 }
+        '1cpu_16core': { name: 'Sangfor Server: 1 CPU x 16 Cores', cpus: 1, coresPerCpu: 16, totalCores: 16, dimmSlots: 16, minRamGB: 128 },
+        '2cpu_12core': { name: 'Sangfor Server: 2 CPU x 12 Cores', cpus: 2, coresPerCpu: 12, totalCores: 24, dimmSlots: 32, minRamGB: 128 },
+        '2cpu_16core': { name: 'Sangfor Server: 2 CPU x 16 Cores', cpus: 2, coresPerCpu: 16, totalCores: 32, dimmSlots: 32, minRamGB: 128 },
+        '2cpu_32core': { name: 'Sangfor Server: 2 CPU x 32 Cores', cpus: 2, coresPerCpu: 32, totalCores: 64, dimmSlots: 32, minRamGB: 128 }
     };
 
     const HDD_SIZES_TB = [16, 12, 10, 8];
     const SSD_SIZES_TB = [7.68, 3.84, 1.92, 0.96];
+
+    /* SHARED SSD CACHE TIERING ENGINE (ENSURES 100% IDENTICAL LOGIC ACROSS LEFT & RIGHT PANELS) */
+    function computeHybridCacheOptions(rawHddPerNodeTB, hddCountPerNode, maxAvailableCacheSlots = 6) {
+        const target15PctTB = rawHddPerNodeTB * 0.15;
+        const target10PctTB = rawHddPerNodeTB * 0.10;
+        const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
+        const maxGroupsLimit = Math.max(1, Math.min(Math.floor(hddCountPerNode), maxAvailableCacheSlots, 6));
+
+        let bestGroups = 1, bestSsdSz = 0, foundOpt = false;
+        for (let grps = 1; grps <= maxGroupsLimit; grps++) {
+            for (let ssdSz of sortedSsdAsc) {
+                if ((ssdSz * grps) >= target15PctTB) {
+                    bestGroups = grps;
+                    bestSsdSz = ssdSz;
+                    foundOpt = true;
+                    break;
+                }
+            }
+            if (foundOpt) break;
+        }
+        if (!foundOpt) {
+            bestGroups = maxGroupsLimit;
+            bestSsdSz = 7.68;
+        }
+
+        let costGroups = 1, costSsdSz = 0, foundCost = false;
+        for (let grps = 1; grps <= maxGroupsLimit; grps++) {
+            for (let ssdSz of sortedSsdAsc) {
+                if ((ssdSz * grps) >= target10PctTB) {
+                    costGroups = grps;
+                    costSsdSz = ssdSz;
+                    foundCost = true;
+                    break;
+                }
+            }
+            if (foundCost) break;
+        }
+        if (!foundCost) {
+            costGroups = bestGroups;
+            costSsdSz = bestSsdSz;
+        }
+
+        const bestRatio = rawHddPerNodeTB > 0 ? ((bestSsdSz * bestGroups) / rawHddPerNodeTB) * 100 : 0;
+        const costRatio = rawHddPerNodeTB > 0 ? ((costSsdSz * costGroups) / rawHddPerNodeTB) * 100 : 0;
+
+        return {
+            bestGroups,
+            bestSsdSz,
+            bestRatio,
+            costGroups,
+            costSsdSz,
+            costRatio
+        };
+    }
 
     /* RVTOOLS FILE UPLOADER ENGINE WITH ROBUST MEMORY PARSING */
     function handleRVToolsUpload(event) {
@@ -1008,10 +1079,12 @@
         
         if (select.value === 'custom') {
             customBox.style.display = 'block';
-            bestTag.style.display = 'none';
+            bestTag.innerText = '3rd-Party Custom';
+            bestTag.style.backgroundColor = '#856404';
         } else {
             customBox.style.display = 'none';
-            bestTag.style.display = 'inline-block';
+            bestTag.innerText = 'Sangfor Appliance';
+            bestTag.style.backgroundColor = '#28a745';
         }
         recalculateHardware();
     }
@@ -1021,22 +1094,25 @@
         if (selectedKey === 'custom') {
             const sockets = parseInt(document.getElementById('customSockets').value) || 1;
             const coresPerCpu = parseInt(document.getElementById('customCores').value) || 16;
+            const minRamGB = parseInt(document.getElementById('customMinRam').value) || 64;
             return {
-                name: `Custom ${sockets} Socket x ${coresPerCpu} Cores`,
+                name: `Custom 3rd-Party (${sockets} Socket x ${coresPerCpu} Cores)`,
                 cpus: sockets,
                 coresPerCpu: coresPerCpu,
                 totalCores: sockets * coresPerCpu,
-                dimmSlots: sockets === 1 ? 16 : 32
+                dimmSlots: sockets === 1 ? 16 : 32,
+                minRamGB: minRamGB
             };
         } else {
             return TEMPLATES[selectedKey] || TEMPLATES['2cpu_32core'];
         }
     }
 
-    function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots) {
+    function getScaledRAM(requiredRAMPerActiveNode, maxDimmSlots, minRamFloorGB = 128) {
+        const effectiveRequiredRAM = Math.max(requiredRAMPerActiveNode, minRamFloorGB);
         const presets = [64, 128, 256, 512, 1024];
         for (let ram of presets) {
-            if (ram >= requiredRAMPerActiveNode) {
+            if (ram >= effectiveRequiredRAM) {
                 const num64GBDimms = Math.ceil(ram / 64);
                 if (num64GBDimms <= maxDimmSlots) {
                     return { ramGB: ram, dimmCount: num64GBDimms };
@@ -1048,15 +1124,12 @@
 
     /* N+1 HIGH AVAILABILITY & PHYSICAL ENCLOSURE DISK SLOT AUTO-SCALING EVALUATOR */
     function evaluateHardware(tmpl) {
-        // Step 1: Compute required nodes considering N+1 HA for CPU Cores
         let rawActiveNodesForCPU = Math.ceil(globalCalculatedCores / tmpl.totalCores);
         let requiredNodesByCPU = Math.max(rawActiveNodesForCPU + 1, 2);
         let requiredNodes = requiredNodesByCPU;
 
-        // Active survivable nodes in case 1 node fails (N - 1)
         let activeNodes = Math.max(requiredNodes - 1, 1);
 
-        // Step 2: Evaluate RAM & NVMe Tiering requirements under N-1 active nodes
         let totalRamPerActiveNode = Math.ceil(globalCalculatedRAM / activeNodes);
         let useTiering = totalRamPerActiveNode > 256 && globalCalculatedNVMeRAM > 0;
         let nodesByNVMeTier = 1;
@@ -1067,12 +1140,10 @@
             const nvmeRamNeededPerActiveNode = Math.ceil(globalCalculatedNVMeRAM / activeNodes);
             
             let activeNodesForNVMe = Math.ceil(nvmeRamNeededPerActiveNode / nvmeSizeGB);
-            nodesByNVMeTier = activeNodesForNVMe + 1; // Add 1 for N+1 HA
+            nodesByNVMeTier = activeNodesForNVMe + 1;
             requiredNodes = Math.max(requiredNodes, nodesByNVMeTier);
         }
 
-        // Step 3: PHYSICAL DISK SLOT AUTO-SCALING LOOP
-        // Iterate node count upward if required storage drives + cache + tiering exceed enclosure physical slots
         const maxSlotsPerNode = parseInt(document.getElementById('stMaxSlotsPerNode')?.value) || 12;
         const selectedArch = document.getElementById('workloadArch')?.value || 'flash';
         let nodesByStorageSlots = requiredNodes;
@@ -1094,7 +1165,6 @@
         requiredNodes = Math.max(requiredNodes, nodesByStorageSlots);
         activeNodes = Math.max(requiredNodes - 1, 1);
 
-        // Step 4: Final sizing per node based on final active survivable nodes (N - 1)
         totalRamPerActiveNode = Math.ceil(globalCalculatedRAM / activeNodes);
         useTiering = totalRamPerActiveNode > 256 && globalCalculatedNVMeRAM > 0;
 
@@ -1102,7 +1172,7 @@
             ? Math.ceil(globalCalculatedDRAM / activeNodes) 
             : Math.ceil(globalCalculatedRAM / activeNodes);
 
-        const ramSpec = getScaledRAM(dramNeededPerActiveNode, tmpl.dimmSlots);
+        const ramSpec = getScaledRAM(dramNeededPerActiveNode, tmpl.dimmSlots, tmpl.minRamGB);
 
         return {
             nodes: requiredNodes,
@@ -1111,87 +1181,59 @@
             nodesByStorageSlots: nodesByStorageSlots,
             useTiering: useTiering,
             ramSpec: ramSpec,
-            activeNodes: activeNodes
+            activeNodes: activeNodes,
+            minRamFloorGB: tmpl.minRamGB
         };
     }
 
-    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE (DYNAMIC MAX SLOTS SUPPORT) */
+    /* HYBRID MULTI-DISK GROUP AUTO-CALCULATOR ENGINE (UNIFIED WITH RIGHT-SIDE CACHE LOGIC) */
     function autoCalculateDisks(nodesCount, targetUsableTB, arch, isNvmeTieringActive, maxSlotsPerNode = 12) {
-        const rawNeededTB = (targetUsableTB * 2) / 0.83;
+        const copyPolicy = parseInt(document.getElementById('stCopyPolicy')?.value) || 2;
+        const rawNeededTB = (targetUsableTB * copyPolicy) / 0.83;
         const rawNeededPerNodeTB = rawNeededTB / nodesCount;
+        const slotsForTiering = isNvmeTieringActive ? 1 : 0;
 
         let chosenHddSize = 0, hddsPerNode = 0, totalHddQty = 0;
-        let bestNumGroups = 1, bestSsdSizePerGroup = 0;
-        let costNumGroups = 1, costSsdSizePerGroup = 0;
-        let bestCacheRatio = 0, costCacheRatio = 0;
+        let cacheRes = {
+            bestGroups: 1, bestSsdSz: 0, bestRatio: 0,
+            costGroups: 1, costSsdSz: 0, costRatio: 0
+        };
 
         if (arch === 'hybrid') {
             let foundValid = false;
-            const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
 
             for (let hddSz of HDD_SIZES_TB) {
                 let reqHdds = Math.ceil(rawNeededPerNodeTB / hddSz);
                 if (reqHdds < 2) reqHdds = 2;
 
-                for (let numGroups = 1; numGroups <= Math.min(reqHdds, 6); numGroups++) {
-                    const slotsForTiering = isNvmeTieringActive ? 1 : 0;
-                    const totalSlotsUsed = reqHdds + numGroups + slotsForTiering;
+                const availableCacheSlots = maxSlotsPerNode - reqHdds - slotsForTiering;
+                if (availableCacheSlots >= 1) {
+                    const rawHddNodeTB = reqHdds * hddSz;
+                    const tempCache = computeHybridCacheOptions(rawHddNodeTB, reqHdds, availableCacheSlots);
 
-                    if (totalSlotsUsed <= maxSlotsPerNode) {
-                        const rawHddNodeTB = reqHdds * hddSz;
-                        const target15PctTB = rawHddNodeTB * 0.15;
-                        const target10PctTB = rawHddNodeTB * 0.10;
-
-                        let optSsdSz = 0;
-                        for (let ssdSz of sortedSsdAsc) {
-                            if ((ssdSz * numGroups) >= target15PctTB) {
-                                optSsdSz = ssdSz;
-                                break;
-                            }
-                        }
-                        if (optSsdSz === 0) optSsdSz = 7.68;
-
-                        let cstSsdSz = 0;
-                        for (let ssdSz of sortedSsdAsc) {
-                            if ((ssdSz * numGroups) >= target10PctTB) {
-                                cstSsdSz = ssdSz;
-                                break;
-                            }
-                        }
-
+                    if ((reqHdds + tempCache.bestGroups + slotsForTiering) <= maxSlotsPerNode) {
                         chosenHddSize = hddSz;
                         hddsPerNode = reqHdds;
                         totalHddQty = reqHdds * nodesCount;
-
-                        bestNumGroups = numGroups;
-                        bestSsdSizePerGroup = optSsdSz;
-                        bestCacheRatio = ((optSsdSz * numGroups) / rawHddNodeTB) * 100;
-
-                        costNumGroups = numGroups;
-                        costSsdSizePerGroup = cstSsdSz > 0 ? cstSsdSz : optSsdSz;
-                        costCacheRatio = ((costSsdSizePerGroup * numGroups) / rawHddNodeTB) * 100;
-
+                        cacheRes = tempCache;
                         foundValid = true;
                         break;
                     }
                 }
-                if (foundValid) break;
             }
 
             if (!foundValid) {
                 chosenHddSize = 16;
                 hddsPerNode = Math.ceil(rawNeededPerNodeTB / 16);
                 totalHddQty = hddsPerNode * nodesCount;
-                bestNumGroups = 1;
-                bestSsdSizePerGroup = 7.68;
-                bestCacheRatio = ((7.68 * bestNumGroups) / (hddsPerNode * 16)) * 100;
+                const availableCacheSlots = Math.max(1, maxSlotsPerNode - hddsPerNode - slotsForTiering);
+                cacheRes = computeHybridCacheOptions(hddsPerNode * 16, hddsPerNode, availableCacheSlots);
             }
         } else {
             for (let sz of SSD_SIZES_TB) {
                 let nodeQty = Math.ceil(rawNeededPerNodeTB / sz);
                 if (nodeQty < 2) nodeQty = 2;
                 
-                const slotsForTiering = isNvmeTieringActive ? 1 : 0;
                 if ((nodeQty + slotsForTiering) <= maxSlotsPerNode) {
                     chosenHddSize = sz;
                     hddsPerNode = nodeQty;
@@ -1211,12 +1253,12 @@
             diskSize: chosenHddSize,
             totalQty: totalHddQty,
             disksPerNode: hddsPerNode,
-            bestNumGroups: bestNumGroups,
-            bestSsdSizePerGroup: bestSsdSizePerGroup,
-            bestCacheRatio: bestCacheRatio,
-            costNumGroups: costNumGroups,
-            costSsdSizePerGroup: costSsdSizePerGroup,
-            costCacheRatio: costCacheRatio
+            bestNumGroups: cacheRes.bestGroups,
+            bestSsdSizePerGroup: cacheRes.bestSsdSz,
+            bestCacheRatio: cacheRes.bestRatio,
+            costNumGroups: cacheRes.costGroups,
+            costSsdSizePerGroup: cacheRes.costSsdSz,
+            costCacheRatio: cacheRes.costRatio
         };
     }
 
@@ -1243,7 +1285,13 @@
         document.getElementById('outLimitingFactor').innerText = limitingFactors.length ? limitingFactors.join(" and ") : "Minimum 2 Node Cluster Rule (N+1 HA)";
         document.getElementById('outNodes').innerText = `${nodes} Nodes (${activeNodes} Active + 1 HA Failover)`;
         document.getElementById('outPerNodeCPU').innerText = `${tmpl.cpus} CPU x ${tmpl.coresPerCpu} Cores, ${tmpl.totalCores} Total Cores per server`;
-        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x 64GB DIMMs`;
+        
+        const isSangforTemplate = document.getElementById('templateSelect').value !== 'custom';
+        const ramBaselineNote = isSangforTemplate 
+            ? ` (Sangfor Server 128 GB Base Minimum)` 
+            : ` (3rd-Party Custom ${tmpl.minRamGB} GB Base Minimum)`;
+
+        document.getElementById('outPerNodeRAM').innerText = `${evalRes.ramSpec.ramGB} GB Physical DRAM, ${evalRes.ramSpec.dimmCount} x 64GB DIMMs${ramBaselineNote}`;
 
         const splitRow = document.getElementById('memorySplitRow');
         if (useTiering) {
@@ -1288,11 +1336,11 @@
         const cacheRow = document.getElementById('outAutoCacheRow');
         if (selectedArch === 'hybrid') {
             cacheRow.style.display = 'flex';
-            let cacheText = `${autoStorage.bestNumGroups} x ${autoStorage.bestSsdSizePerGroup} TB SSD Cache per server (${autoStorage.bestCacheRatio.toFixed(1)}% cache ratio)`;
-            if (autoStorage.costSsdSizePerGroup < autoStorage.bestSsdSizePerGroup) {
-                cacheText += ` | Cost-Optimized Option: ${autoStorage.costNumGroups} x ${autoStorage.costSsdSizePerGroup} TB SSD Cache (${autoStorage.costCacheRatio.toFixed(1)}% ratio)`;
+            let leftCacheHTML = `⭐ <strong>Optimal Cache (≥15% Ratio):</strong> ${autoStorage.bestNumGroups} Disk Group(s) with <strong>${autoStorage.bestNumGroups} x ${autoStorage.bestSsdSizePerGroup} TB SSD</strong> per server (${autoStorage.bestCacheRatio.toFixed(1)}% ratio)`;
+            if (autoStorage.costSsdSizePerGroup < autoStorage.bestSsdSizePerGroup || autoStorage.costNumGroups < autoStorage.bestNumGroups) {
+                leftCacheHTML += `<br>💡 <strong>Cost-Optimized Option (10% to 15% Ratio):</strong> ${autoStorage.costNumGroups} Disk Group(s) with <strong>${autoStorage.costNumGroups} x ${autoStorage.costSsdSizePerGroup} TB SSD</strong> per server (${autoStorage.costCacheRatio.toFixed(1)}% ratio)`;
             }
-            document.getElementById('outAutoCacheRec').innerText = cacheText;
+            document.getElementById('outAutoCacheRec').innerHTML = leftCacheHTML;
         } else {
             cacheRow.style.display = 'none';
         }
@@ -1400,49 +1448,15 @@
             cacheBox.style.display = 'block';
             const rawPerNodeTB = totalRawTB / stNodes;
             const hddCountPerNode = totalQty / stNodes;
-            const target15PctTB = rawPerNodeTB * 0.15;
-            const target10PctTB = rawPerNodeTB * 0.10;
-
-            let bestGroups = 1, bestSsdSz = 0;
-            let costGroups = 1, costSsdSz = 0;
-            const sortedSsdAsc = [0.96, 1.92, 3.84, 7.68];
-
-            let foundOpt = false;
-            for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
-                for (let ssdSz of sortedSsdAsc) {
-                    if ((ssdSz * grps) >= target15PctTB) {
-                        bestGroups = grps;
-                        bestSsdSz = ssdSz;
-                        foundOpt = true;
-                        break;
-                    }
-                }
-                if (foundOpt) break;
-            }
-            if (!foundOpt) { bestGroups = 1; bestSsdSz = 7.68; }
-
-            let foundCost = false;
-            for (let grps = 1; grps <= Math.min(hddCountPerNode, 6); grps++) {
-                for (let ssdSz of sortedSsdAsc) {
-                    if ((ssdSz * grps) >= target10PctTB) {
-                        costGroups = grps;
-                        costSsdSz = ssdSz;
-                        foundCost = true;
-                        break;
-                    }
-                }
-                if (foundCost) break;
-            }
-            if (!foundCost) { costGroups = 1; costSsdSz = bestSsdSz; }
-
-            const bestRatio = rawPerNodeTB > 0 ? ((bestSsdSz * bestGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
-            const costRatio = rawPerNodeTB > 0 ? ((costSsdSz * costGroups) / rawPerNodeTB * 100).toFixed(1) : 0;
+            const availableCacheSlots = Math.max(1, maxSlotsPerNode - Math.ceil(hddCountPerNode));
+            
+            const cacheRes = computeHybridCacheOptions(rawPerNodeTB, hddCountPerNode, availableCacheSlots);
 
             let cacheHTML = `Raw HDD Capacity per Node: <strong>${rawPerNodeTB.toFixed(2)} TB</strong><br>` +
-                            `⭐ <strong>Optimal Cache Recommendation (≥15% Ratio):</strong> ${bestGroups} Disk Group(s) with <strong>${bestGroups} x ${bestSsdSz} TB SSD</strong> per node (${bestRatio}% ratio)<br>`;
+                            `⭐ <strong>Optimal Cache Recommendation (≥15% Ratio):</strong> ${cacheRes.bestGroups} Disk Group(s) with <strong>${cacheRes.bestGroups} x ${cacheRes.bestSsdSz} TB SSD</strong> per node (${cacheRes.bestRatio.toFixed(1)}% ratio)<br>`;
 
-            if (costSsdSz < bestSsdSz || costGroups < bestGroups) {
-                cacheHTML += `💡 <strong>Cost-Optimized Option (10% to 15% Ratio):</strong> ${costGroups} Disk Group(s) with <strong>${costGroups} x ${costSsdSz} TB SSD</strong> per node (${costRatio}% ratio)`;
+            if (cacheRes.costSsdSz < cacheRes.bestSsdSz || cacheRes.costGroups < cacheRes.bestGroups) {
+                cacheHTML += `💡 <strong>Cost-Optimized Option (10% to 15% Ratio):</strong> ${cacheRes.costGroups} Disk Group(s) with <strong>${cacheRes.costGroups} x ${cacheRes.costSsdSz} TB SSD</strong> per node (${cacheRes.costRatio.toFixed(1)}% ratio)`;
             }
 
             document.getElementById('cacheDetailText').innerHTML = cacheHTML;
